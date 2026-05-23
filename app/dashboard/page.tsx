@@ -16,83 +16,23 @@ export default async function DashboardPage() {
 
   const total = posts?.length ?? 0
   const published = posts?.filter(p => p.published).length ?? 0
-  const drafts = total - published
 
   return (
-    <div style={{ maxWidth: '820px', margin: '0 auto', padding: '2.5rem 2.5rem' }}>
-      {/* Page header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-end',
-          justifyContent: 'space-between',
-          marginBottom: '2.5rem',
-          paddingBottom: '1.5rem',
-          borderBottom: '1px solid var(--border)',
-        }}
-      >
+    <div className="max-w-3xl mx-auto px-8 py-10">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-8">
         <div>
-          <h1
-            style={{
-              fontFamily: 'var(--font-cormorant)',
-              fontSize: '2rem',
-              fontWeight: 500,
-              letterSpacing: '-0.02em',
-              color: 'var(--text)',
-              lineHeight: 1.1,
-            }}
-          >
-            Mis escritos
-          </h1>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '1rem',
-              marginTop: '0.5rem',
-            }}
-          >
-            <span
-              style={{
-                fontFamily: 'var(--font-syne)',
-                fontSize: '0.7rem',
-                color: 'var(--text-tertiary)',
-                letterSpacing: '0.04em',
-              }}
-            >
-              {total} total
-            </span>
-            <span style={{ color: 'var(--border)' }}>·</span>
-            <span
-              style={{
-                fontFamily: 'var(--font-syne)',
-                fontSize: '0.7rem',
-                color: 'var(--success)',
-                letterSpacing: '0.04em',
-              }}
-            >
-              {published} publicados
-            </span>
-            {drafts > 0 && (
-              <>
-                <span style={{ color: 'var(--border)' }}>·</span>
-                <span
-                  style={{
-                    fontFamily: 'var(--font-syne)',
-                    fontSize: '0.7rem',
-                    color: 'var(--text-tertiary)',
-                    letterSpacing: '0.04em',
-                  }}
-                >
-                  {drafts} borradores
-                </span>
-              </>
-            )}
-          </div>
+          <h1 className="text-xl font-semibold" style={{ color: 'var(--text)' }}>Mis posts</h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+            {total} total · {published} publicados
+          </p>
         </div>
-
-        <Link href="/dashboard/new" className="btn-primary">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <Link
+          href="/dashboard/new"
+          className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-md transition-opacity hover:opacity-80"
+          style={{ background: 'var(--text)', color: 'var(--bg)' }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"/>
             <line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
@@ -100,196 +40,81 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      {/* Post list */}
+      {/* Posts list */}
       {posts && posts.length > 0 ? (
-        <div>
-          {posts.map((post, i) => (
-            <PostRow
+        <div style={{ borderTop: '1px solid var(--border)' }}>
+          {posts.map((post) => (
+            <div
               key={post.id}
-              post={post}
-              isLast={i === posts.length - 1}
-            />
+              className="group flex items-start gap-4 py-4 -mx-2 px-2 rounded-md transition-colors hover:bg-[var(--bg-hover)]"
+              style={{ borderBottom: '1px solid var(--border)' }}
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span
+                    className="inline-flex text-xs px-1.5 py-0.5 rounded font-medium"
+                    style={{
+                      background: post.published ? 'rgba(66, 153, 90, 0.12)' : 'rgba(180, 150, 0, 0.10)',
+                      color: post.published ? '#3a7a52' : '#916a00',
+                    }}
+                  >
+                    {post.published ? 'Publicado' : 'Borrador'}
+                  </span>
+                  <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                    {formatDateShort(post.created_at)} · {readingTime(post.content)} min
+                  </span>
+                </div>
+
+                <Link href={`/dashboard/edit/${post.id}`}>
+                  <h3 className="font-medium text-sm leading-snug group-hover:underline" style={{ color: 'var(--text)' }}>
+                    {post.title}
+                  </h3>
+                </Link>
+
+                {post.excerpt && (
+                  <p className="text-xs mt-1 line-clamp-2 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                    {post.excerpt}
+                  </p>
+                )}
+
+                {post.tags && post.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {post.tags.slice(0, 4).map((tag: string) => (
+                      <span
+                        key={tag}
+                        className="text-xs px-1.5 py-0.5 rounded"
+                        style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <Link
+                href={`/dashboard/edit/${post.id}`}
+                className="flex-shrink-0 text-xs px-3 py-1.5 rounded-md border transition-colors opacity-0 group-hover:opacity-100 hover:bg-[var(--bg-secondary)]"
+                style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+              >
+                Editar
+              </Link>
+            </div>
           ))}
         </div>
       ) : (
-        <EmptyState />
-      )}
-    </div>
-  )
-}
-
-function PostRow({
-  post,
-  isLast,
-}: {
-  post: {
-    id: string
-    title: string
-    excerpt: string
-    content: string
-    published: boolean
-    created_at: string
-    slug: string
-    tags: string[]
-  }
-  isLast: boolean
-}) {
-  return (
-    <div
-      style={{
-        paddingTop: '1.375rem',
-        paddingBottom: '1.375rem',
-        borderBottom: isLast ? 'none' : '1px solid var(--border)',
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '1.25rem',
-      }}
-    >
-      {/* Content */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Meta row */}
         <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.625rem',
-            marginBottom: '0.5rem',
-          }}
+          className="text-center py-20 rounded-lg border"
+          style={{ borderColor: 'var(--border)', borderStyle: 'dashed' }}
         >
-          <span className={post.published ? 'badge-published' : 'badge-draft'}>
-            {post.published ? '● Publicado' : '○ Borrador'}
-          </span>
-          <span
-            style={{
-              fontFamily: 'var(--font-syne)',
-              fontSize: '0.65rem',
-              color: 'var(--text-tertiary)',
-              letterSpacing: '0.04em',
-            }}
-          >
-            {formatDateShort(post.created_at)}
-          </span>
-          <span style={{ color: 'var(--border)' }}>·</span>
-          <span
-            style={{
-              fontFamily: 'var(--font-syne)',
-              fontSize: '0.65rem',
-              color: 'var(--text-tertiary)',
-              letterSpacing: '0.04em',
-            }}
-          >
-            {readingTime(post.content)} min
-          </span>
-        </div>
-
-        {/* Title */}
-        <Link href={`/dashboard/edit/${post.id}`} style={{ textDecoration: 'none' }}>
-          <h3
-            style={{
-              fontFamily: 'var(--font-cormorant)',
-              fontSize: '1.25rem',
-              fontWeight: 600,
-              letterSpacing: '-0.01em',
-              color: 'var(--text)',
-              lineHeight: 1.3,
-              transition: 'color 0.15s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text)')}
-          >
-            {post.title}
-          </h3>
-        </Link>
-
-        {/* Excerpt */}
-        {post.excerpt && (
-          <p
-            style={{
-              fontFamily: 'var(--font-crimson)',
-              fontSize: '0.9375rem',
-              lineHeight: 1.6,
-              color: 'var(--text-secondary)',
-              marginTop: '0.25rem',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-          >
-            {post.excerpt}
+          <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>
+            Aún no has escrito ningún post
           </p>
-        )}
-
-        {/* Tags */}
-        {post.tags && post.tags.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', marginTop: '0.625rem' }}>
-            {post.tags.slice(0, 5).map((tag: string) => (
-              <span key={tag} className="tag-chip">{tag}</span>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Edit link */}
-      <Link
-        href={`/dashboard/edit/${post.id}`}
-        className="btn-ghost"
-        style={{ flexShrink: 0, alignSelf: 'flex-start' }}
-      >
-        Editar
-      </Link>
-    </div>
-  )
-}
-
-function EmptyState() {
-  return (
-    <div
-      style={{
-        textAlign: 'center',
-        padding: '5rem 2rem',
-      }}
-    >
-      {/* Ornamental initial */}
-      <div
-        style={{
-          fontFamily: 'var(--font-cormorant)',
-          fontSize: '5rem',
-          fontWeight: 300,
-          color: 'var(--border)',
-          lineHeight: 1,
-          marginBottom: '1.5rem',
-          fontStyle: 'italic',
-        }}
-      >
-        ❦
-      </div>
-      <p
-        style={{
-          fontFamily: 'var(--font-cormorant)',
-          fontSize: '1.375rem',
-          fontWeight: 400,
-          fontStyle: 'italic',
-          color: 'var(--text-secondary)',
-          marginBottom: '0.625rem',
-        }}
-      >
-        Aún no has escrito nada
-      </p>
-      <p
-        style={{
-          fontFamily: 'var(--font-syne)',
-          fontSize: '0.75rem',
-          color: 'var(--text-tertiary)',
-          marginBottom: '2rem',
-          letterSpacing: '0.02em',
-        }}
-      >
-        Tu primera historia te está esperando
-      </p>
-      <Link href="/dashboard/new" className="btn-primary">
-        Escribe el primer post
-      </Link>
+          <Link href="/dashboard/new" className="text-sm font-medium hover:underline" style={{ color: 'var(--text)' }}>
+            Escribe el primero →
+          </Link>
+        </div>
+      )}
     </div>
   )
 }

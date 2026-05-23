@@ -26,10 +26,9 @@ export function ReadingProgress() {
         left: 0,
         height: '2px',
         width: `${progress}%`,
-        background: 'var(--accent)',
-        zIndex: 9999,
+        background: 'var(--text)',
+        zIndex: 100,
         transition: 'width 0.1s linear',
-        boxShadow: '0 0 8px var(--accent-glow)',
       }}
     />
   )

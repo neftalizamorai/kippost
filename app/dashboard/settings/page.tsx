@@ -62,232 +62,112 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
-        <span
-          style={{
-            fontFamily: 'var(--font-cormorant)',
-            fontSize: '1.125rem',
-            fontStyle: 'italic',
-            color: 'var(--text-tertiary)',
-          }}
-        >
-          Cargando...
-        </span>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Cargando...</div>
       </div>
     )
   }
 
   return (
-    <div style={{ maxWidth: '520px', margin: '0 auto', padding: '2.5rem 2.5rem' }}>
-      {/* Header */}
-      <div style={{ marginBottom: '2.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border)' }}>
-        <h1
-          style={{
-            fontFamily: 'var(--font-cormorant)',
-            fontSize: '2rem',
-            fontWeight: 500,
-            letterSpacing: '-0.02em',
-            color: 'var(--text)',
-            lineHeight: 1.1,
-          }}
-        >
-          Perfil público
-        </h1>
-        <p
-          style={{
-            fontFamily: 'var(--font-syne)',
-            fontSize: '0.7rem',
-            color: 'var(--text-tertiary)',
-            marginTop: '0.5rem',
-            letterSpacing: '0.04em',
-          }}
-        >
-          Tu blog está en{' '}
-          <code
-            style={{
-              fontFamily: 'monospace',
-              background: 'var(--bg-secondary)',
-              padding: '1px 5px',
-              borderRadius: '2px',
-              border: '1px solid var(--border)',
-              color: 'var(--accent)',
-              fontSize: '0.7rem',
-            }}
-          >
-            /blog/{username}
-          </code>
-        </p>
-      </div>
+    <div className="max-w-lg mx-auto px-8 py-10">
+      <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text)' }}>Perfil</h1>
+      <p className="text-sm mb-8" style={{ color: 'var(--text-secondary)' }}>
+        Tu blog público está en{' '}
+        <span className="font-mono text-xs" style={{ color: 'var(--text)' }}>/blog/{username}</span>
+      </p>
 
       {/* Avatar preview */}
       {avatarUrl && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-            marginBottom: '2rem',
-            padding: '1rem 1.25rem',
-            background: 'var(--bg-secondary)',
-            border: '1px solid var(--border)',
-            borderRadius: '4px',
-          }}
-        >
-          <div
-            style={{
-              width: '52px',
-              height: '52px',
-              borderRadius: '50%',
-              overflow: 'hidden',
-              border: '2px solid var(--border)',
-              flexShrink: 0,
-            }}
-          >
+        <div className="mb-6 flex items-center gap-3">
+          <div className="w-14 h-14 rounded-full overflow-hidden border" style={{ borderColor: 'var(--border)' }}>
             <Image
               src={avatarUrl}
               alt="Avatar"
-              width={52}
-              height={52}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              width={56}
+              height={56}
+              className="w-full h-full object-cover"
               unoptimized
             />
           </div>
           <div>
-            <p
-              style={{
-                fontFamily: 'var(--font-cormorant)',
-                fontSize: '1.125rem',
-                fontWeight: 600,
-                color: 'var(--text)',
-              }}
-            >
-              {name || username}
-            </p>
-            <p
-              style={{
-                fontFamily: 'var(--font-syne)',
-                fontSize: '0.675rem',
-                color: 'var(--accent)',
-                marginTop: '0.125rem',
-                letterSpacing: '0.04em',
-              }}
-            >
-              @{username}
-            </p>
+            <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>{name || username}</p>
+            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>@{username}</p>
           </div>
         </div>
       )}
 
-      <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1.375rem' }}>
-        {/* Username (readonly) */}
+      <form onSubmit={handleSave} className="space-y-5">
         <div>
-          <label className="kip-label">Username</label>
+          <label className="block text-sm mb-1.5 font-medium" style={{ color: 'var(--text)' }}>
+            Username
+          </label>
           <input
             type="text"
             value={username}
             disabled
-            className="kip-input"
+            className="w-full px-3 py-2 text-sm rounded-md border cursor-not-allowed opacity-60"
+            style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text)' }}
           />
-          <p
-            style={{
-              fontFamily: 'var(--font-syne)',
-              fontSize: '0.65rem',
-              color: 'var(--text-tertiary)',
-              marginTop: '0.375rem',
-              letterSpacing: '0.02em',
-            }}
-          >
-            El username no se puede cambiar
-          </p>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>El username no se puede cambiar.</p>
         </div>
 
         <div>
-          <label className="kip-label">Nombre público</label>
+          <label className="block text-sm mb-1.5 font-medium" style={{ color: 'var(--text)' }}>
+            Nombre
+          </label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Tu Nombre"
-            className="kip-input"
+            className="w-full px-3 py-2 text-sm rounded-md border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
+            style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+            placeholder="Tu nombre"
           />
         </div>
 
         <div>
-          <label className="kip-label">Bio</label>
+          <label className="block text-sm mb-1.5 font-medium" style={{ color: 'var(--text)' }}>
+            Bio
+          </label>
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             rows={3}
             maxLength={200}
             placeholder="Cuéntale a tus lectores quién eres..."
-            className="kip-input"
-            style={{ resize: 'none', lineHeight: 1.65 }}
+            className="w-full px-3 py-2 text-sm rounded-md border outline-none resize-none focus:ring-1 focus:ring-[var(--text)] transition-all leading-relaxed"
+            style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
           />
-          <p
-            style={{
-              fontFamily: 'var(--font-syne)',
-              fontSize: '0.65rem',
-              color: 'var(--text-tertiary)',
-              marginTop: '0.375rem',
-              textAlign: 'right',
-              letterSpacing: '0.04em',
-            }}
-          >
-            {bio.length} / 200
-          </p>
+          <p className="text-xs mt-1 text-right" style={{ color: 'var(--text-tertiary)' }}>{bio.length}/200</p>
         </div>
 
         <div>
-          <label className="kip-label">URL del avatar</label>
+          <label className="block text-sm mb-1.5 font-medium" style={{ color: 'var(--text)' }}>
+            URL del avatar
+          </label>
           <input
             type="url"
             value={avatarUrl}
             onChange={(e) => setAvatarUrl(e.target.value)}
             placeholder="https://..."
-            className="kip-input"
+            className="w-full px-3 py-2 text-sm rounded-md border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
+            style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
           />
-          <p
-            style={{
-              fontFamily: 'var(--font-syne)',
-              fontSize: '0.65rem',
-              color: 'var(--text-tertiary)',
-              marginTop: '0.375rem',
-              letterSpacing: '0.02em',
-            }}
-          >
-            Usa una URL pública (Gravatar, imgur, etc.)
-          </p>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>Usa una URL de imagen pública (ej: Gravatar, imgur).</p>
         </div>
 
         {error && (
-          <p
-            style={{
-              fontFamily: 'var(--font-syne)',
-              fontSize: '0.75rem',
-              color: 'var(--error)',
-              padding: '0.625rem 0.75rem',
-              background: 'rgba(224, 112, 112, 0.08)',
-              borderRadius: '3px',
-              border: '1px solid rgba(224, 112, 112, 0.2)',
-            }}
-          >
-            {error}
-          </p>
+          <p className="text-sm" style={{ color: '#e03e3e' }}>{error}</p>
         )}
 
-        <div style={{ paddingTop: '0.5rem' }}>
-          <button
-            type="submit"
-            disabled={saving}
-            className="btn-primary"
-            style={{
-              background: saved ? 'var(--success)' : 'var(--accent)',
-              borderColor: saved ? 'var(--success)' : 'var(--accent)',
-            }}
-          >
-            {saving ? 'Guardando...' : saved ? '✓ Guardado' : 'Guardar cambios'}
-          </button>
-        </div>
+        <button
+          type="submit"
+          disabled={saving}
+          className="text-sm font-medium px-5 py-2 rounded-md transition-all hover:opacity-80 disabled:opacity-50"
+          style={{ background: saved ? '#3a7a52' : 'var(--text)', color: 'var(--bg)' }}
+        >
+          {saving ? 'Guardando...' : saved ? '✓ Guardado' : 'Guardar cambios'}
+        </button>
       </form>
     </div>
   )

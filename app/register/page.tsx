@@ -44,6 +44,7 @@ export default function RegisterPage() {
       return
     }
 
+    // Si el usuario está disponible de inmediato (sin confirmación de email), creamos el perfil
     if (data.user && data.session) {
       const { error: profileError } = await supabase.from('profiles').upsert({
         id: data.user.id,
@@ -60,6 +61,7 @@ export default function RegisterPage() {
       router.push('/dashboard')
       router.refresh()
     } else {
+      // Email confirmation required
       setSuccess(true)
       setLoading(false)
     }
@@ -67,70 +69,14 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '1rem',
-          background: 'var(--bg)',
-        }}
-      >
-        <div className="anim-fade-up delay-0" style={{ maxWidth: '360px', width: '100%', textAlign: 'center' }}>
-          <div
-            style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '50%',
-              background: 'var(--accent-dim)',
-              border: '1px solid var(--accent)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 1.5rem',
-              color: 'var(--accent)',
-            }}
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-              <polyline points="22,6 12,13 2,6"/>
-            </svg>
-          </div>
-          <h2
-            style={{
-              fontFamily: 'var(--font-cormorant)',
-              fontSize: '1.875rem',
-              fontWeight: 500,
-              color: 'var(--text)',
-              marginBottom: '0.75rem',
-            }}
-          >
-            Revisa tu correo
-          </h2>
-          <p
-            style={{
-              fontFamily: 'var(--font-crimson)',
-              fontSize: '1rem',
-              lineHeight: 1.7,
-              color: 'var(--text-secondary)',
-              marginBottom: '2rem',
-            }}
-          >
-            Te enviamos un enlace de confirmación a{' '}
-            <strong style={{ color: 'var(--text)' }}>{email}</strong>.
-            Haz clic en él para activar tu cuenta.
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: 'var(--bg)' }}>
+        <div className="w-full max-w-sm text-center">
+          <div className="text-4xl mb-4">✉️</div>
+          <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text)' }}>Revisa tu correo</h2>
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            Te enviamos un enlace de confirmación a <strong>{email}</strong>. Haz clic en él para activar tu cuenta.
           </p>
-          <Link
-            href="/login"
-            style={{
-              fontFamily: 'var(--font-syne)',
-              fontSize: '0.75rem',
-              color: 'var(--text-tertiary)',
-              textDecoration: 'underline',
-              textUnderlineOffset: '2px',
-            }}
-          >
+          <Link href="/login" className="block mt-6 text-sm hover:underline" style={{ color: 'var(--text)' }}>
             Volver al inicio de sesión
           </Link>
         </div>
@@ -139,212 +85,80 @@ export default function RegisterPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2rem 1rem',
-        background: 'var(--bg)',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Glow */}
-      <div
-        className="pointer-events-none"
-        style={{
-          position: 'fixed',
-          top: '-20%',
-          right: '-15%',
-          width: '60%',
-          height: '60%',
-          background: 'radial-gradient(ellipse, var(--accent-glow) 0%, transparent 65%)',
-          zIndex: 0,
-        }}
-      />
-
-      {/* Controls */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '1.25rem',
-          right: '1.5rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem',
-          zIndex: 10,
-        }}
-      >
-        <Link
-          href="/"
-          style={{
-            fontFamily: 'var(--font-syne)',
-            fontSize: '0.7rem',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: 'var(--text-tertiary)',
-            textDecoration: 'none',
-          }}
-        >
-          ← Inicio
-        </Link>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: 'var(--bg)' }}>
+      <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
 
-      {/* Card */}
-      <div
-        className="anim-fade-up delay-0"
-        style={{ width: '100%', maxWidth: '400px', position: 'relative', zIndex: 10 }}
-      >
-        {/* Brand */}
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <Link
-            href="/"
-            style={{
-              fontFamily: 'var(--font-cormorant)',
-              fontSize: '2.25rem',
-              fontWeight: 500,
-              letterSpacing: '-0.01em',
-              color: 'var(--text)',
-              textDecoration: 'none',
-            }}
-          >
-            KipPost
-          </Link>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.875rem',
-              marginTop: '0.875rem',
-              justifyContent: 'center',
-            }}
-          >
-            <div style={{ height: '1px', width: '36px', background: 'var(--border)' }} />
-            <span style={{ fontFamily: 'var(--font-cormorant)', fontSize: '0.7rem', color: 'var(--accent)' }}>◆</span>
-            <div style={{ height: '1px', width: '36px', background: 'var(--border)' }} />
-          </div>
-        </div>
+      <div className="w-full max-w-sm">
+        <Link href="/" className="block text-lg font-semibold mb-8 hover:opacity-70 transition-opacity" style={{ color: 'var(--text)' }}>
+          KipPost
+        </Link>
 
-        <h1
-          style={{
-            fontFamily: 'var(--font-cormorant)',
-            fontSize: '1.875rem',
-            fontWeight: 500,
-            color: 'var(--text)',
-            textAlign: 'center',
-            marginBottom: '0.375rem',
-          }}
-        >
-          Crea tu espacio
-        </h1>
-        <p
-          style={{
-            fontFamily: 'var(--font-syne)',
-            fontSize: '0.75rem',
-            color: 'var(--text-secondary)',
-            textAlign: 'center',
-            marginBottom: '2rem',
-          }}
-        >
+        <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text)' }}>Crea tu cuenta</h1>
+        <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
           ¿Ya tienes cuenta?{' '}
-          <Link
-            href="/login"
-            style={{ color: 'var(--accent)', textDecoration: 'underline', textUnderlineOffset: '2px' }}
-          >
+          <Link href="/login" className="hover:underline" style={{ color: 'var(--text)' }}>
             Inicia sesión
           </Link>
         </p>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.125rem' }}>
-          {/* Username */}
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="kip-label">Tu dirección de blog</label>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border)',
-                borderRadius: '3px',
-                overflow: 'hidden',
-              }}
-            >
-              <span
-                style={{
-                  padding: '0.625rem 0.75rem',
-                  fontFamily: 'var(--font-syne)',
-                  fontSize: '0.75rem',
-                  color: 'var(--text-tertiary)',
-                  borderRight: '1px solid var(--border)',
-                  background: 'var(--bg-card)',
-                  flexShrink: 0,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                /blog/
+            <label className="block text-sm mb-1.5" style={{ color: 'var(--text)' }}>
+              Username
+            </label>
+            <div className="flex items-center rounded-md border overflow-hidden transition-all focus-within:ring-1 focus-within:ring-[var(--text)]" style={{ borderColor: 'var(--border)' }}>
+              <span className="px-3 py-2 text-sm border-r" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
+                kippost.com/blog/
               </span>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value.toLowerCase())}
                 required
+                className="flex-1 px-3 py-2 text-sm outline-none"
+                style={{ background: 'var(--bg)', color: 'var(--text)' }}
                 placeholder="tunombre"
-                style={{
-                  flex: 1,
-                  padding: '0.625rem 0.75rem',
-                  background: 'transparent',
-                  border: 'none',
-                  outline: 'none',
-                  fontFamily: 'var(--font-syne)',
-                  fontSize: '0.8125rem',
-                  color: 'var(--text)',
-                  minWidth: 0,
-                }}
               />
             </div>
-            <p
-              style={{
-                marginTop: '0.375rem',
-                fontFamily: 'var(--font-syne)',
-                fontSize: '0.65rem',
-                color: 'var(--text-tertiary)',
-                letterSpacing: '0.02em',
-              }}
-            >
-              Solo letras minúsculas, números, _ y - (3-30 chars)
-            </p>
           </div>
 
           <div>
-            <label className="kip-label">Nombre para mostrar</label>
+            <label className="block text-sm mb-1.5" style={{ color: 'var(--text)' }}>
+              Nombre para mostrar
+            </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              className="w-full px-3 py-2 text-sm rounded-md border outline-none transition-all focus:ring-1 focus:ring-[var(--text)]"
+              style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
               placeholder="Tu Nombre"
-              className="kip-input"
             />
           </div>
 
           <div>
-            <label className="kip-label">Correo electrónico</label>
+            <label className="block text-sm mb-1.5" style={{ color: 'var(--text)' }}>
+              Correo electrónico
+            </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
+              className="w-full px-3 py-2 text-sm rounded-md border outline-none transition-all focus:ring-1 focus:ring-[var(--text)]"
+              style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
               placeholder="tu@correo.com"
-              className="kip-input"
             />
           </div>
 
           <div>
-            <label className="kip-label">Contraseña</label>
+            <label className="block text-sm mb-1.5" style={{ color: 'var(--text)' }}>
+              Contraseña
+            </label>
             <input
               type="password"
               value={password}
@@ -352,34 +166,23 @@ export default function RegisterPage() {
               required
               autoComplete="new-password"
               minLength={6}
+              className="w-full px-3 py-2 text-sm rounded-md border outline-none transition-all focus:ring-1 focus:ring-[var(--text)]"
+              style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
               placeholder="Mínimo 6 caracteres"
-              className="kip-input"
             />
           </div>
 
           {error && (
-            <p
-              style={{
-                fontFamily: 'var(--font-syne)',
-                fontSize: '0.75rem',
-                color: 'var(--error)',
-                padding: '0.625rem 0.75rem',
-                background: 'rgba(224, 112, 112, 0.08)',
-                borderRadius: '3px',
-                border: '1px solid rgba(224, 112, 112, 0.2)',
-              }}
-            >
-              {error}
-            </p>
+            <p className="text-sm" style={{ color: '#e03e3e' }}>{error}</p>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary"
-            style={{ width: '100%', justifyContent: 'center', marginTop: '0.375rem', padding: '0.75rem' }}
+            className="w-full py-2.5 text-sm font-medium rounded-md transition-opacity hover:opacity-80 disabled:opacity-50"
+            style={{ background: 'var(--text)', color: 'var(--bg)' }}
           >
-            {loading ? 'Creando cuenta...' : 'Crear cuenta gratis'}
+            {loading ? 'Creando cuenta...' : 'Crear cuenta'}
           </button>
         </form>
       </div>

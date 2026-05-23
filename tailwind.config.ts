@@ -10,9 +10,24 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-syne)', 'system-ui', 'sans-serif'],
-        display: ['var(--font-cormorant)', 'Georgia', 'serif'],
-        reading: ['var(--font-crimson)', 'Georgia', 'serif'],
+        sans: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+      },
+      typography: {
+        DEFAULT: {
+          css: {
+            color: 'var(--text)',
+            a: { color: 'var(--text)', textDecoration: 'underline' },
+            h1: { color: 'var(--text)' },
+            h2: { color: 'var(--text)' },
+            h3: { color: 'var(--text)' },
+            h4: { color: 'var(--text)' },
+            strong: { color: 'var(--text)' },
+            blockquote: { color: 'var(--text-secondary)', borderLeftColor: 'var(--border)' },
+            code: { color: 'var(--text)', backgroundColor: 'var(--bg-secondary)' },
+            pre: { backgroundColor: 'var(--bg-secondary)' },
+            hr: { borderColor: 'var(--border)' },
+          },
+        },
       },
     },
   },

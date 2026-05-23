@@ -109,155 +109,57 @@ export default function EditPostPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
-        <span
-          style={{
-            fontFamily: 'var(--font-cormorant)',
-            fontSize: '1.125rem',
-            fontStyle: 'italic',
-            color: 'var(--text-tertiary)',
-          }}
-        >
-          Cargando...
-        </span>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Cargando...</div>
       </div>
     )
   }
 
   if (!post) {
     return (
-      <div style={{ padding: '2.5rem 2rem' }}>
-        <p style={{ fontFamily: 'var(--font-syne)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-          Post no encontrado.
-        </p>
-        <Link
-          href="/dashboard"
-          style={{
-            fontFamily: 'var(--font-syne)',
-            fontSize: '0.7rem',
-            color: 'var(--text-tertiary)',
-            textDecoration: 'underline',
-            display: 'block',
-            marginTop: '0.75rem',
-          }}
-        >
-          ← Volver al dashboard
-        </Link>
+      <div className="max-w-3xl mx-auto px-8 py-10">
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Post no encontrado.</p>
+        <Link href="/dashboard" className="text-sm mt-2 block hover:underline" style={{ color: 'var(--text)' }}>← Volver</Link>
       </div>
     )
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      {/* Toolbar */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0.875rem 2rem',
-          borderBottom: '1px solid var(--border)',
-          background: 'var(--bg-secondary)',
-          flexShrink: 0,
-          gap: '1rem',
-        }}
-      >
-        {/* Left */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: 0 }}>
-          <Link
-            href="/dashboard"
-            style={{
-              fontFamily: 'var(--font-syne)',
-              fontSize: '0.7rem',
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-              color: 'var(--text-tertiary)',
-              textDecoration: 'none',
-              flexShrink: 0,
-              transition: 'color 0.15s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
-          >
+    <div className="max-w-3xl mx-auto px-8 py-10">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard" className="text-sm transition-opacity hover:opacity-60" style={{ color: 'var(--text-secondary)' }}>
             ← Volver
           </Link>
-          <div style={{ width: '1px', height: '16px', background: 'var(--border)', flexShrink: 0 }} />
-          <span
-            style={{
-              fontFamily: 'var(--font-syne)',
-              fontSize: '0.7rem',
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-              color: 'var(--text-secondary)',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Editando
-          </span>
+          <span style={{ color: 'var(--border)' }}>|</span>
+          <h1 className="text-sm font-medium" style={{ color: 'var(--text)' }}>Editando post</h1>
         </div>
 
-        {/* Right: controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', flexShrink: 0 }}>
-          <button onClick={handlePreview} className="btn-ghost">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handlePreview}
+            className="text-sm px-3 py-1.5 rounded-md border transition-colors hover:bg-[var(--bg-hover)]"
+            style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+          >
             {tab === 'write' ? 'Vista previa' : 'Editar'}
           </button>
 
-          {/* Publish toggle */}
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontFamily: 'var(--font-syne)',
-              fontSize: '0.7rem',
-              fontWeight: 600,
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              userSelect: 'none',
-            }}
-          >
-            <div
-              onClick={() => setPublished(!published)}
-              style={{
-                width: '32px',
-                height: '18px',
-                borderRadius: '9px',
-                background: published ? 'var(--accent)' : 'var(--border)',
-                position: 'relative',
-                cursor: 'pointer',
-                transition: 'background 0.2s ease',
-                flexShrink: 0,
-              }}
-            >
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '2px',
-                  left: published ? '16px' : '2px',
-                  width: '14px',
-                  height: '14px',
-                  borderRadius: '50%',
-                  background: 'var(--bg)',
-                  transition: 'left 0.2s ease',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
-                }}
-              />
-            </div>
+          <label className="flex items-center gap-1.5 text-sm cursor-pointer select-none" style={{ color: 'var(--text-secondary)' }}>
+            <input
+              type="checkbox"
+              checked={published}
+              onChange={(e) => setPublished(e.target.checked)}
+              className="rounded"
+            />
             Publicado
           </label>
 
           <button
             onClick={handleSave}
             disabled={saving}
-            className="btn-primary"
-            style={{
-              background: saved ? 'var(--success)' : 'var(--accent)',
-              borderColor: saved ? 'var(--success)' : 'var(--accent)',
-            }}
+            className="text-sm font-medium px-4 py-1.5 rounded-md transition-opacity hover:opacity-80 disabled:opacity-50"
+            style={{ background: saved ? '#3a7a52' : 'var(--text)', color: 'var(--bg)' }}
           >
             {saving ? 'Guardando...' : saved ? '✓ Guardado' : 'Guardar'}
           </button>
@@ -265,145 +167,83 @@ export default function EditPostPage() {
           <button
             onClick={handleDelete}
             disabled={deleting}
-            className="btn-danger"
+            className="text-sm px-3 py-1.5 rounded-md border transition-colors hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
+            style={{ borderColor: 'var(--border)', color: '#e03e3e' }}
           >
             {deleting ? '...' : 'Eliminar'}
           </button>
         </div>
       </div>
 
-      {/* Error */}
       {error && (
-        <div
-          style={{
-            padding: '0.625rem 2rem',
-            fontFamily: 'var(--font-syne)',
-            fontSize: '0.75rem',
-            color: 'var(--error)',
-            background: 'rgba(224, 112, 112, 0.08)',
-            borderBottom: '1px solid rgba(224, 112, 112, 0.2)',
-          }}
-        >
+        <div className="mb-4 px-3 py-2 rounded-md text-sm" style={{ background: 'rgba(224, 62, 62, 0.08)', color: '#e03e3e' }}>
           {error}
         </div>
       )}
 
-      {/* Editor body */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '2.5rem 2rem',
-          maxWidth: '820px',
-          margin: '0 auto',
-          width: '100%',
-        }}
-      >
-        <textarea
-          value={title}
-          onChange={(e) => {
-            setTitle(e.target.value)
-            e.target.style.height = 'auto'
-            e.target.style.height = e.target.scrollHeight + 'px'
-          }}
-          placeholder="Título de tu historia..."
-          rows={1}
-          className="editor-title"
-          style={{ marginBottom: '1.5rem', overflow: 'hidden' }}
-        />
+      <input
+        type="text"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Título"
+        className="w-full text-3xl font-semibold bg-transparent border-none outline-none mb-6 leading-tight"
+        style={{ color: 'var(--text)' }}
+      />
 
-        {/* Ornament */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-            marginBottom: '2rem',
-          }}
-        >
-          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
-          <span
-            style={{
-              fontFamily: 'var(--font-cormorant)',
-              fontSize: '0.75rem',
-              color: 'var(--accent)',
-            }}
-          >
-            ◆
-          </span>
-          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+      <div className="space-y-5">
+        <div>
+          <label className="block text-xs font-medium uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
+            Extracto
+          </label>
+          <textarea
+            value={excerpt}
+            onChange={(e) => setExcerpt(e.target.value)}
+            rows={2}
+            placeholder="Breve descripción del post."
+            className="w-full px-3 py-2 text-sm rounded-md border outline-none resize-none focus:ring-1 focus:ring-[var(--text)] transition-all leading-relaxed"
+            style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+          />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <div>
-            <label className="kip-label">Extracto</label>
+        <div>
+          <label className="block text-xs font-medium uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
+            Contenido (Markdown)
+          </label>
+
+          {tab === 'write' ? (
             <textarea
-              value={excerpt}
-              onChange={(e) => setExcerpt(e.target.value)}
-              rows={2}
-              placeholder="Una descripción breve que atraiga a los lectores..."
-              className="kip-input"
-              style={{ resize: 'none', lineHeight: 1.65 }}
-            />
-          </div>
-
-          <div>
-            <label className="kip-label">
-              Contenido{' '}
-              <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>
-                (Markdown)
-              </span>
-            </label>
-
-            {tab === 'write' ? (
-              <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                className="kip-input"
-                style={{
-                  resize: 'vertical',
-                  minHeight: '380px',
-                  fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace",
-                  fontSize: '0.8125rem',
-                  lineHeight: 1.7,
-                }}
-              />
-            ) : (
-              <div
-                className="prose"
-                style={{
-                  minHeight: '380px',
-                  padding: '1.25rem',
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '3px',
-                }}
-                dangerouslySetInnerHTML={{ __html: previewHtml }}
-              />
-            )}
-          </div>
-
-          <div>
-            <label className="kip-label">Etiquetas</label>
-            <input
-              type="text"
-              value={tagsInput}
-              onChange={(e) => setTagsInput(e.target.value)}
-              placeholder="javascript, web, tutorial"
-              className="kip-input"
-            />
-            <p
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="w-full px-3 py-3 text-sm rounded-md border outline-none resize-y focus:ring-1 focus:ring-[var(--text)] transition-all font-mono leading-relaxed"
               style={{
-                fontFamily: 'var(--font-syne)',
-                fontSize: '0.65rem',
-                color: 'var(--text-tertiary)',
-                marginTop: '0.375rem',
-                letterSpacing: '0.02em',
+                background: 'var(--bg)',
+                borderColor: 'var(--border)',
+                color: 'var(--text)',
+                minHeight: '420px',
               }}
-            >
-              Separadas por coma
-            </p>
-          </div>
+            />
+          ) : (
+            <div
+              className="prose prose-sm min-h-[420px] px-3 py-3 rounded-md border"
+              style={{ borderColor: 'var(--border)' }}
+              dangerouslySetInnerHTML={{ __html: previewHtml }}
+            />
+          )}
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
+            Etiquetas
+          </label>
+          <input
+            type="text"
+            value={tagsInput}
+            onChange={(e) => setTagsInput(e.target.value)}
+            placeholder="javascript, web, tutorial"
+            className="w-full px-3 py-2 text-sm rounded-md border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
+            style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+          />
+          <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>Separadas por coma</p>
         </div>
       </div>
     </div>
