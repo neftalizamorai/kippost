@@ -28,10 +28,15 @@ interface Props {
 
 type Tab = 'home' | 'archive' | 'about'
 
+const TAB_LABELS: Record<Tab, string> = {
+  home: 'Inicio',
+  archive: 'Archivo',
+  about: 'Sobre mí',
+}
+
 export default function BlogView({ profile, posts }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('home')
 
-  // Group posts by month for archive
   const byMonth: Record<string, Post[]> = {}
   posts.forEach((p) => {
     const key = formatMonth(p.created_at)
@@ -44,154 +49,287 @@ export default function BlogView({ profile, posts }: Props) {
   return (
     <div>
       {/* Tabs */}
-      <div className="flex items-center gap-0" style={{ borderBottom: '1px solid var(--border)' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0',
+          marginBottom: '2.5rem',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
         {(['home', 'archive', 'about'] as Tab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className="px-4 py-3 text-sm transition-colors relative"
             style={{
-              color: activeTab === tab ? 'var(--text)' : 'var(--text-secondary)',
-              fontWeight: activeTab === tab ? 500 : 400,
-              borderBottom: activeTab === tab ? '2px solid var(--text)' : '2px solid transparent',
+              padding: '0.625rem 0',
+              marginRight: '2rem',
+              fontFamily: 'var(--font-syne)',
+              fontSize: '0.7rem',
+              fontWeight: activeTab === tab ? 700 : 500,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: activeTab === tab ? 'var(--text)' : 'var(--text-tertiary)',
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === tab ? '2px solid var(--accent)' : '2px solid transparent',
               marginBottom: '-1px',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              whiteSpace: 'nowrap',
             }}
           >
-            {tab === 'home' ? 'Inicio' : tab === 'archive' ? 'Archivo' : 'Sobre mí'}
+            {TAB_LABELS[tab]}
           </button>
         ))}
       </div>
 
-      {/* Tab content */}
-      <div className="mt-8">
-        {/* HOME */}
-        {activeTab === 'home' && (
-          <div>
-            {recentPosts.length === 0 ? (
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+      {/* HOME */}
+      {activeTab === 'home' && (
+        <div>
+          {recentPosts.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '4rem 0' }}>
+              <p
+                style={{
+                  fontFamily: 'var(--font-cormorant)',
+                  fontSize: '1.25rem',
+                  fontStyle: 'italic',
+                  color: 'var(--text-tertiary)',
+                }}
+              >
                 Aún no hay posts publicados.
               </p>
-            ) : (
-              <div>
-                {recentPosts.map((post, i) => (
-                  <PostRow
-                    key={post.id}
-                    post={post}
-                    username={profile.username}
-                    last={i === recentPosts.length - 1}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+            </div>
+          ) : (
+            <div>
+              {recentPosts.map((post, i) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  username={profile.username}
+                  isLast={i === recentPosts.length - 1}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
-        {/* ARCHIVE */}
-        {activeTab === 'archive' && (
-          <div>
-            {Object.keys(byMonth).length === 0 ? (
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Sin posts aún.</p>
-            ) : (
-              Object.entries(byMonth).map(([month, monthPosts]) => (
-                <div key={month} className="mb-8">
-                  <h3
-                    className="text-xs font-medium uppercase tracking-wider mb-3"
-                    style={{ color: 'var(--text-tertiary)' }}
-                  >
-                    {month}
-                  </h3>
-                  <div>
-                    {monthPosts.map((post, i) => (
-                      <PostRow
-                        key={post.id}
-                        post={post}
-                        username={profile.username}
-                        last={i === monthPosts.length - 1}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        )}
-
-        {/* ABOUT */}
-        {activeTab === 'about' && (
-          <div className="max-w-lg">
-            {profile.avatar_url && (
-              <img
-                src={profile.avatar_url}
-                alt={profile.name}
-                className="w-20 h-20 rounded-full object-cover mb-5"
-                style={{ border: '1px solid var(--border)' }}
-              />
-            )}
-            <h2 className="text-xl font-semibold mb-3" style={{ color: 'var(--text)' }}>
-              {profile.name}
-            </h2>
-            {profile.bio ? (
-              <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                {profile.bio}
-              </p>
-            ) : (
-              <p className="text-sm italic" style={{ color: 'var(--text-tertiary)' }}>
-                Este escritor aún no ha agregado una bio.
-              </p>
-            )}
-            <p className="text-sm mt-5" style={{ color: 'var(--text-tertiary)' }}>
-              {posts.length} {posts.length === 1 ? 'post publicado' : 'posts publicados'}
+      {/* ARCHIVE */}
+      {activeTab === 'archive' && (
+        <div>
+          {Object.keys(byMonth).length === 0 ? (
+            <p
+              style={{
+                fontFamily: 'var(--font-crimson)',
+                fontSize: '1rem',
+                fontStyle: 'italic',
+                color: 'var(--text-tertiary)',
+              }}
+            >
+              Sin posts aún.
             </p>
-          </div>
-        )}
-      </div>
+          ) : (
+            Object.entries(byMonth).map(([month, monthPosts]) => (
+              <div key={month} style={{ marginBottom: '2.5rem' }}>
+                <h3
+                  style={{
+                    fontFamily: 'var(--font-syne)',
+                    fontSize: '0.625rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.16em',
+                    textTransform: 'uppercase',
+                    color: 'var(--accent)',
+                    marginBottom: '1rem',
+                  }}
+                >
+                  {month}
+                </h3>
+                <div>
+                  {monthPosts.map((post, i) => (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      username={profile.username}
+                      isLast={i === monthPosts.length - 1}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* ABOUT */}
+      {activeTab === 'about' && (
+        <div style={{ maxWidth: '480px' }}>
+          {profile.avatar_url && (
+            <img
+              src={profile.avatar_url}
+              alt={profile.name}
+              style={{
+                width: '88px',
+                height: '88px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: '2px solid var(--border)',
+                marginBottom: '1.5rem',
+              }}
+            />
+          )}
+
+          <h2
+            style={{
+              fontFamily: 'var(--font-cormorant)',
+              fontSize: '2rem',
+              fontWeight: 500,
+              letterSpacing: '-0.01em',
+              color: 'var(--text)',
+              marginBottom: '1rem',
+              lineHeight: 1.2,
+            }}
+          >
+            {profile.name}
+          </h2>
+
+          {profile.bio ? (
+            <p
+              style={{
+                fontFamily: 'var(--font-crimson)',
+                fontSize: '1.125rem',
+                lineHeight: 1.8,
+                color: 'var(--text-secondary)',
+              }}
+            >
+              {profile.bio}
+            </p>
+          ) : (
+            <p
+              style={{
+                fontFamily: 'var(--font-crimson)',
+                fontSize: '1.0625rem',
+                fontStyle: 'italic',
+                color: 'var(--text-tertiary)',
+              }}
+            >
+              Este escritor aún no ha agregado una bio.
+            </p>
+          )}
+
+          <p
+            style={{
+              fontFamily: 'var(--font-syne)',
+              fontSize: '0.7rem',
+              letterSpacing: '0.06em',
+              color: 'var(--text-tertiary)',
+              marginTop: '1.5rem',
+            }}
+          >
+            {posts.length} {posts.length === 1 ? 'post publicado' : 'posts publicados'}
+          </p>
+        </div>
+      )}
     </div>
   )
 }
 
-function PostRow({ post, username, last }: { post: Post; username: string; last: boolean }) {
+function PostCard({
+  post,
+  username,
+  isLast,
+}: {
+  post: Post
+  username: string
+  isLast: boolean
+}) {
   return (
-    <Link href={`/blog/${username}/${post.slug}`}>
+    <Link
+      href={`/blog/${username}/${post.slug}`}
+      style={{ textDecoration: 'none', display: 'block' }}
+    >
       <div
-        className="group py-5 -mx-2 px-2 rounded-md transition-colors hover:bg-[var(--bg-hover)] cursor-pointer"
-        style={{ borderBottom: last ? 'none' : '1px solid var(--border)' }}
+        style={{
+          paddingTop: '1.75rem',
+          paddingBottom: '1.75rem',
+          borderBottom: isLast ? 'none' : '1px solid var(--border-light)',
+          cursor: 'pointer',
+          transition: 'opacity 0.15s',
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.75')}
+        onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
       >
-        <div className="flex items-center gap-2 mb-1.5">
-          <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+        {/* Date + reading time */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.625rem',
+            marginBottom: '0.625rem',
+          }}
+        >
+          <time
+            style={{
+              fontFamily: 'var(--font-syne)',
+              fontSize: '0.65rem',
+              letterSpacing: '0.06em',
+              color: 'var(--text-tertiary)',
+            }}
+          >
             {formatDate(post.created_at)}
-          </span>
+          </time>
           <span style={{ color: 'var(--border)' }}>·</span>
-          <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-            {readingTime(post.content)} min de lectura
+          <span
+            style={{
+              fontFamily: 'var(--font-syne)',
+              fontSize: '0.65rem',
+              letterSpacing: '0.06em',
+              color: 'var(--text-tertiary)',
+            }}
+          >
+            {readingTime(post.content)} min
           </span>
         </div>
 
+        {/* Title */}
         <h2
-          className="text-base font-semibold leading-snug group-hover:underline"
-          style={{ color: 'var(--text)' }}
+          style={{
+            fontFamily: 'var(--font-cormorant)',
+            fontSize: '1.5rem',
+            fontWeight: 600,
+            letterSpacing: '-0.01em',
+            color: 'var(--text)',
+            lineHeight: 1.25,
+            marginBottom: post.excerpt ? '0.5rem' : 0,
+          }}
         >
           {post.title}
         </h2>
 
+        {/* Excerpt */}
         {post.excerpt && (
           <p
-            className="mt-1 text-sm leading-relaxed line-clamp-2"
-            style={{ color: 'var(--text-secondary)' }}
+            style={{
+              fontFamily: 'var(--font-crimson)',
+              fontSize: '1rem',
+              lineHeight: 1.7,
+              color: 'var(--text-secondary)',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
           >
             {post.excerpt}
           </p>
         )}
 
+        {/* Tags */}
         {post.tags && post.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-3">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', marginTop: '0.875rem' }}>
             {post.tags.slice(0, 4).map((tag: string) => (
-              <span
-                key={tag}
-                className="text-xs px-1.5 py-0.5 rounded"
-                style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
-              >
-                {tag}
-              </span>
+              <span key={tag} className="tag-chip">{tag}</span>
             ))}
           </div>
         )}

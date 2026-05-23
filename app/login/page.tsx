@@ -31,66 +31,182 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: 'var(--bg)' }}>
-      <div className="absolute top-4 right-4">
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '1rem',
+        background: 'var(--bg)',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Glow */}
+      <div
+        className="pointer-events-none"
+        style={{
+          position: 'fixed',
+          bottom: '-20%',
+          right: '-10%',
+          width: '60%',
+          height: '60%',
+          background: 'radial-gradient(ellipse, var(--accent-glow) 0%, transparent 65%)',
+          zIndex: 0,
+        }}
+      />
+
+      {/* Controls top-right */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '1.25rem',
+          right: '1.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+          zIndex: 10,
+        }}
+      >
+        <Link
+          href="/"
+          style={{
+            fontFamily: 'var(--font-syne)',
+            fontSize: '0.7rem',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: 'var(--text-tertiary)',
+            textDecoration: 'none',
+            transition: 'color 0.15s',
+          }}
+        >
+          ← Inicio
+        </Link>
         <ThemeToggle />
       </div>
 
-      <div className="w-full max-w-sm">
-        <Link href="/" className="block text-lg font-semibold mb-8 hover:opacity-70 transition-opacity" style={{ color: 'var(--text)' }}>
-          KipPost
-        </Link>
+      {/* Card */}
+      <div
+        className="anim-fade-up delay-0"
+        style={{
+          width: '100%',
+          maxWidth: '380px',
+          position: 'relative',
+          zIndex: 10,
+        }}
+      >
+        {/* Brand */}
+        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <Link
+            href="/"
+            style={{
+              fontFamily: 'var(--font-cormorant)',
+              fontSize: '2.25rem',
+              fontWeight: 500,
+              letterSpacing: '-0.01em',
+              color: 'var(--text)',
+              textDecoration: 'none',
+            }}
+          >
+            KipPost
+          </Link>
 
-        <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text)' }}>Iniciar sesión</h1>
-        <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.875rem',
+              marginTop: '0.875rem',
+              justifyContent: 'center',
+            }}
+          >
+            <div style={{ height: '1px', width: '36px', background: 'var(--border)' }} />
+            <span style={{ fontFamily: 'var(--font-cormorant)', fontSize: '0.7rem', color: 'var(--accent)' }}>◆</span>
+            <div style={{ height: '1px', width: '36px', background: 'var(--border)' }} />
+          </div>
+        </div>
+
+        {/* Heading */}
+        <h1
+          style={{
+            fontFamily: 'var(--font-cormorant)',
+            fontSize: '1.875rem',
+            fontWeight: 500,
+            color: 'var(--text)',
+            textAlign: 'center',
+            marginBottom: '0.375rem',
+            lineHeight: 1.2,
+          }}
+        >
+          Bienvenido de vuelta
+        </h1>
+        <p
+          style={{
+            fontFamily: 'var(--font-syne)',
+            fontSize: '0.75rem',
+            color: 'var(--text-secondary)',
+            textAlign: 'center',
+            marginBottom: '2rem',
+          }}
+        >
           ¿No tienes cuenta?{' '}
-          <Link href="/register" className="hover:underline" style={{ color: 'var(--text)' }}>
-            Regístrate
+          <Link
+            href="/register"
+            style={{ color: 'var(--accent)', textDecoration: 'underline', textUnderlineOffset: '2px' }}
+          >
+            Regístrate gratis
           </Link>
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.125rem' }}>
           <div>
-            <label className="block text-sm mb-1.5" style={{ color: 'var(--text)' }}>
-              Correo electrónico
-            </label>
+            <label className="kip-label">Correo electrónico</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
-              className="w-full px-3 py-2 text-sm rounded-md border outline-none transition-all focus:ring-1 focus:ring-[var(--text)]"
-              style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
               placeholder="tu@correo.com"
+              className="kip-input"
             />
           </div>
 
           <div>
-            <label className="block text-sm mb-1.5" style={{ color: 'var(--text)' }}>
-              Contraseña
-            </label>
+            <label className="kip-label">Contraseña</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="current-password"
-              className="w-full px-3 py-2 text-sm rounded-md border outline-none transition-all focus:ring-1 focus:ring-[var(--text)]"
-              style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
               placeholder="••••••••"
+              className="kip-input"
             />
           </div>
 
           {error && (
-            <p className="text-sm" style={{ color: '#e03e3e' }}>{error}</p>
+            <p
+              style={{
+                fontFamily: 'var(--font-syne)',
+                fontSize: '0.75rem',
+                color: 'var(--error)',
+                padding: '0.625rem 0.75rem',
+                background: 'rgba(224, 112, 112, 0.08)',
+                borderRadius: '3px',
+                border: '1px solid rgba(224, 112, 112, 0.2)',
+              }}
+            >
+              {error}
+            </p>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 text-sm font-medium rounded-md transition-opacity hover:opacity-80 disabled:opacity-50"
-            style={{ background: 'var(--text)', color: 'var(--bg)' }}
+            className="btn-primary"
+            style={{ width: '100%', justifyContent: 'center', marginTop: '0.375rem', padding: '0.75rem' }}
           >
             {loading ? 'Entrando...' : 'Iniciar sesión'}
           </button>

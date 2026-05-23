@@ -44,62 +44,147 @@ export default async function BlogPage({ params }: Props) {
     .order('created_at', { ascending: false })
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       {/* Topbar */}
       <div
-        className="flex items-center justify-between px-8 py-3 sticky top-0 z-40"
         style={{
-          background: 'var(--bg)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0.875rem 2rem',
           borderBottom: '1px solid var(--border)',
-          backdropFilter: 'blur(8px)',
+          background: 'var(--bg)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 40,
+          backdropFilter: 'blur(12px)',
         }}
       >
-        <Link href="/" className="text-sm font-semibold tracking-tight transition-opacity hover:opacity-70" style={{ color: 'var(--text)' }}>
+        <Link
+          href="/"
+          style={{
+            fontFamily: 'var(--font-syne)',
+            fontSize: '0.65rem',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            color: 'var(--text-tertiary)',
+            textDecoration: 'none',
+            transition: 'color 0.15s',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent)')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
+        >
           KipPost
         </Link>
         <ThemeToggle />
       </div>
 
-      <div className="max-w-2xl mx-auto px-6 py-12">
-        {/* Blog Header */}
-        <header className="mb-10">
-          <div className="flex items-start gap-4">
-            {profile.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={profile.name}
-                className="w-12 h-12 rounded-full object-cover flex-shrink-0"
-                style={{ border: '1px solid var(--border)' }}
-              />
-            ) : (
-              <div
-                className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-lg font-semibold"
-                style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
-              >
-                {profile.name?.[0]?.toUpperCase() || profile.username[0].toUpperCase()}
-              </div>
-            )}
-            <div>
-              <h1 className="text-xl font-semibold leading-tight" style={{ color: 'var(--text)' }}>
-                {profile.name}
-              </h1>
-              <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                @{profile.username}
-              </p>
-              {profile.bio && (
-                <p className="text-sm mt-2 leading-relaxed max-w-sm" style={{ color: 'var(--text-secondary)' }}>
-                  {profile.bio}
-                </p>
-              )}
+      <div style={{ maxWidth: '680px', margin: '0 auto', padding: '4rem 2rem 6rem' }}>
+        {/* Blog header */}
+        <header style={{ marginBottom: '3.5rem' }}>
+          {/* Avatar */}
+          {profile.avatar_url ? (
+            <img
+              src={profile.avatar_url}
+              alt={profile.name}
+              style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: '2px solid var(--border)',
+                marginBottom: '1.25rem',
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                background: 'var(--accent-dim)',
+                border: '2px solid var(--accent)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1.25rem',
+                fontFamily: 'var(--font-cormorant)',
+                fontSize: '1.5rem',
+                fontWeight: 600,
+                color: 'var(--accent)',
+              }}
+            >
+              {profile.name?.[0]?.toUpperCase() || profile.username[0].toUpperCase()}
             </div>
+          )}
+
+          {/* Name */}
+          <h1
+            style={{
+              fontFamily: 'var(--font-cormorant)',
+              fontSize: 'clamp(2rem, 5vw, 3rem)',
+              fontWeight: 500,
+              letterSpacing: '-0.02em',
+              color: 'var(--text)',
+              lineHeight: 1.1,
+              marginBottom: '0.375rem',
+            }}
+          >
+            {profile.name}
+          </h1>
+
+          <p
+            style={{
+              fontFamily: 'var(--font-syne)',
+              fontSize: '0.7rem',
+              letterSpacing: '0.08em',
+              color: 'var(--accent)',
+              marginBottom: profile.bio ? '0.875rem' : 0,
+            }}
+          >
+            @{profile.username}
+          </p>
+
+          {profile.bio && (
+            <p
+              style={{
+                fontFamily: 'var(--font-crimson)',
+                fontSize: '1.0625rem',
+                lineHeight: 1.7,
+                color: 'var(--text-secondary)',
+                maxWidth: '440px',
+              }}
+            >
+              {profile.bio}
+            </p>
+          )}
+
+          {/* Divider */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem',
+              marginTop: '2rem',
+            }}
+          >
+            <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+            <span
+              style={{
+                fontFamily: 'var(--font-cormorant)',
+                fontSize: '0.75rem',
+                color: 'var(--accent)',
+                flexShrink: 0,
+              }}
+            >
+              ◆
+            </span>
+            <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
           </div>
         </header>
 
-        {/* Tabs + content */}
-        <BlogView
-          profile={profile}
-          posts={posts ?? []}
-        />
+        {/* Posts */}
+        <BlogView profile={profile} posts={posts ?? []} />
       </div>
     </div>
   )

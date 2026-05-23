@@ -55,7 +55,6 @@ export default async function PostPage({ params }: Props) {
 
   if (!post) notFound()
 
-  // Get prev/next
   const { data: allPosts } = await supabase
     .from('posts')
     .select('id, title, slug')
@@ -67,164 +66,409 @@ export default async function PostPage({ params }: Props) {
   const prevPost = idx > 0 ? allPosts![idx - 1] : null
   const nextPost = idx >= 0 && idx < (allPosts?.length ?? 0) - 1 ? allPosts![idx + 1] : null
 
-  // Render markdown → HTML with heading IDs
   const rawHtml = marked.parse(post.content || '') as string
   const html = addHeadingIds(rawHtml)
   const headings = extractHeadings(html)
   const mins = readingTime(post.content || '')
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
-      {/* Reading progress */}
+    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <ReadingProgress />
 
-      {/* Topbar */}
+      {/* Sticky topbar */}
       <header
-        className="flex items-center justify-between px-8 py-3 sticky top-0 z-40"
         style={{
-          background: 'var(--bg)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0.875rem 2rem',
+          position: 'sticky',
+          top: 0,
+          zIndex: 40,
           borderBottom: '1px solid var(--border)',
-          backdropFilter: 'blur(8px)',
+          background: 'var(--bg)',
+          backdropFilter: 'blur(12px)',
         }}
       >
         <Link
           href={`/blog/${params.username}`}
-          className="flex items-center gap-2 text-sm transition-opacity hover:opacity-70"
-          style={{ color: 'var(--text-secondary)' }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            textDecoration: 'none',
+            transition: 'opacity 0.15s',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.65')}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
+          >
             <line x1="19" y1="12" x2="5" y2="12"/>
             <polyline points="12 19 5 12 12 5"/>
           </svg>
-          <span className="hidden sm:inline">{profile.name}</span>
+          <span
+            style={{
+              fontFamily: 'var(--font-syne)',
+              fontSize: '0.7rem',
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              color: 'var(--text-secondary)',
+            }}
+          >
+            {profile.name}
+          </span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <ShareButton />
           <ThemeToggle />
         </div>
       </header>
 
-      {/* Content */}
-      <div className="max-w-5xl mx-auto px-6 py-12">
-        <div className="flex gap-16">
-          {/* Article */}
-          <article className="flex-1 min-w-0 max-w-2xl">
-            {/* Meta */}
-            <div className="flex items-center gap-2 mb-5 text-xs" style={{ color: 'var(--text-tertiary)' }}>
-              <time>{formatDate(post.created_at)}</time>
-              <span>·</span>
-              <span>{mins} min de lectura</span>
+      {/* Layout */}
+      <div
+        style={{
+          maxWidth: '1080px',
+          margin: '0 auto',
+          padding: '0 2rem',
+          display: 'flex',
+          gap: '5rem',
+          alignItems: 'flex-start',
+        }}
+      >
+        {/* Article */}
+        <article
+          style={{
+            flex: 1,
+            minWidth: 0,
+            maxWidth: '680px',
+            padding: '3.5rem 0 6rem',
+          }}
+        >
+          {/* Post meta */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              marginBottom: '1.5rem',
+            }}
+          >
+            <time
+              style={{
+                fontFamily: 'var(--font-syne)',
+                fontSize: '0.65rem',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: 'var(--text-tertiary)',
+              }}
+            >
+              {formatDate(post.created_at)}
+            </time>
+            <span style={{ color: 'var(--border)' }}>·</span>
+            <span
+              style={{
+                fontFamily: 'var(--font-syne)',
+                fontSize: '0.65rem',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: 'var(--text-tertiary)',
+              }}
+            >
+              {mins} min de lectura
+            </span>
+          </div>
+
+          {/* Title */}
+          <h1
+            style={{
+              fontFamily: 'var(--font-cormorant)',
+              fontSize: 'clamp(2.25rem, 5vw, 3.5rem)',
+              fontWeight: 500,
+              letterSpacing: '-0.025em',
+              lineHeight: 1.1,
+              color: 'var(--text)',
+              marginBottom: '1.25rem',
+            }}
+          >
+            {post.title}
+          </h1>
+
+          {/* Excerpt / subtitle */}
+          {post.excerpt && (
+            <p
+              style={{
+                fontFamily: 'var(--font-crimson)',
+                fontSize: '1.1875rem',
+                lineHeight: 1.7,
+                color: 'var(--text-secondary)',
+                fontStyle: 'italic',
+                marginBottom: '1.75rem',
+              }}
+            >
+              {post.excerpt}
+            </p>
+          )}
+
+          {/* Tags */}
+          {post.tags && post.tags.length > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '0.375rem',
+                marginBottom: '2rem',
+                paddingBottom: '2rem',
+                borderBottom: '1px solid var(--border)',
+              }}
+            >
+              {post.tags.map((tag: string) => (
+                <span key={tag} className="tag-chip">{tag}</span>
+              ))}
             </div>
+          )}
 
-            {/* Title */}
-            <h1 className="text-3xl font-bold leading-tight mb-4" style={{ color: 'var(--text)' }}>
-              {post.title}
-            </h1>
+          {/* Ornament if no tags */}
+          {(!post.tags || post.tags.length === 0) && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1rem',
+                marginBottom: '2rem',
+              }}
+            >
+              <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+              <span
+                style={{
+                  fontFamily: 'var(--font-cormorant)',
+                  fontSize: '0.75rem',
+                  color: 'var(--accent)',
+                  flexShrink: 0,
+                }}
+              >
+                ◆
+              </span>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+            </div>
+          )}
 
-            {/* Excerpt as subtitle */}
-            {post.excerpt && (
-              <p className="text-lg leading-relaxed mb-8" style={{ color: 'var(--text-secondary)' }}>
-                {post.excerpt}
-              </p>
-            )}
+          {/* Content */}
+          <div
+            className="prose"
+            dangerouslySetInnerHTML={{ __html: html }}
+          />
 
-            {/* Tags */}
-            {post.tags && post.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-8 pb-8" style={{ borderBottom: '1px solid var(--border)' }}>
-                {post.tags.map((tag: string) => (
-                  <span
-                    key={tag}
-                    className="text-xs px-2 py-0.5 rounded"
-                    style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
-                  >
-                    {tag}
-                  </span>
-                ))}
+          {/* Author footer */}
+          <div
+            style={{
+              marginTop: '4rem',
+              paddingTop: '2rem',
+              borderTop: '1px solid var(--border)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem',
+            }}
+          >
+            {profile.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt={profile.name}
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: '2px solid var(--border)',
+                  flexShrink: 0,
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  background: 'var(--accent-dim)',
+                  border: '2px solid var(--accent)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  fontFamily: 'var(--font-cormorant)',
+                  fontSize: '1.25rem',
+                  fontWeight: 600,
+                  color: 'var(--accent)',
+                }}
+              >
+                {profile.name?.[0]?.toUpperCase()}
               </div>
             )}
 
-            {/* Content */}
-            <div
-              className="prose prose-base"
-              dangerouslySetInnerHTML={{ __html: html }}
-            />
-
-            {/* Author footer */}
-            <div
-              className="mt-16 pt-8 flex items-center gap-4"
-              style={{ borderTop: '1px solid var(--border)' }}
-            >
-              {profile.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt={profile.name}
-                  className="w-10 h-10 rounded-full object-cover"
-                  style={{ border: '1px solid var(--border)' }}
-                />
-              ) : (
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center font-semibold"
-                  style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
+            <div>
+              <Link
+                href={`/blog/${profile.username}`}
+                style={{
+                  fontFamily: 'var(--font-cormorant)',
+                  fontSize: '1.0625rem',
+                  fontWeight: 600,
+                  color: 'var(--text)',
+                  textDecoration: 'none',
+                  display: 'block',
+                  transition: 'color 0.15s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text)')}
+              >
+                {profile.name}
+              </Link>
+              {profile.bio && (
+                <p
+                  style={{
+                    fontFamily: 'var(--font-crimson)',
+                    fontSize: '0.9375rem',
+                    lineHeight: 1.5,
+                    color: 'var(--text-secondary)',
+                    marginTop: '0.125rem',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}
                 >
-                  {profile.name?.[0]?.toUpperCase()}
-                </div>
+                  {profile.bio}
+                </p>
               )}
+            </div>
+          </div>
+
+          {/* Prev / Next */}
+          {(prevPost || nextPost) && (
+            <nav
+              style={{
+                marginTop: '2rem',
+                paddingTop: '2rem',
+                borderTop: '1px solid var(--border)',
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '1.5rem',
+              }}
+            >
               <div>
-                <Link
-                  href={`/blog/${profile.username}`}
-                  className="text-sm font-medium hover:underline"
-                  style={{ color: 'var(--text)' }}
-                >
-                  {profile.name}
-                </Link>
-                {profile.bio && (
-                  <p className="text-xs mt-0.5 line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
-                    {profile.bio}
-                  </p>
+                {nextPost && (
+                  <Link
+                    href={`/blog/${params.username}/${nextPost.slug}`}
+                    style={{ textDecoration: 'none', display: 'block' }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-syne)',
+                        fontSize: '0.6rem',
+                        letterSpacing: '0.1em',
+                        textTransform: 'uppercase',
+                        color: 'var(--text-tertiary)',
+                        display: 'block',
+                        marginBottom: '0.375rem',
+                      }}
+                    >
+                      ← Anterior
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-cormorant)',
+                        fontSize: '1.0625rem',
+                        fontWeight: 600,
+                        color: 'var(--text)',
+                        lineHeight: 1.3,
+                        transition: 'color 0.15s',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text)')}
+                    >
+                      {nextPost.title}
+                    </span>
+                  </Link>
                 )}
               </div>
-            </div>
-
-            {/* Prev / Next */}
-            {(prevPost || nextPost) && (
-              <nav
-                className="mt-8 pt-8 grid grid-cols-2 gap-4"
-                style={{ borderTop: '1px solid var(--border)' }}
-              >
-                <div>
-                  {nextPost && (
-                    <Link href={`/blog/${params.username}/${nextPost.slug}`} className="group block">
-                      <span className="text-xs block mb-1" style={{ color: 'var(--text-tertiary)' }}>← Anterior</span>
-                      <span className="text-sm font-medium group-hover:underline" style={{ color: 'var(--text)' }}>
-                        {nextPost.title}
-                      </span>
-                    </Link>
-                  )}
-                </div>
-                <div className="text-right">
-                  {prevPost && (
-                    <Link href={`/blog/${params.username}/${prevPost.slug}`} className="group block">
-                      <span className="text-xs block mb-1" style={{ color: 'var(--text-tertiary)' }}>Siguiente →</span>
-                      <span className="text-sm font-medium group-hover:underline" style={{ color: 'var(--text)' }}>
-                        {prevPost.title}
-                      </span>
-                    </Link>
-                  )}
-                </div>
-              </nav>
-            )}
-          </article>
-
-          {/* TOC sidebar */}
-          {headings.length > 0 && (
-            <aside className="hidden lg:block w-52 flex-shrink-0">
-              <div className="sticky top-24">
-                <TableOfContents headings={headings} />
+              <div style={{ textAlign: 'right' }}>
+                {prevPost && (
+                  <Link
+                    href={`/blog/${params.username}/${prevPost.slug}`}
+                    style={{ textDecoration: 'none', display: 'block' }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-syne)',
+                        fontSize: '0.6rem',
+                        letterSpacing: '0.1em',
+                        textTransform: 'uppercase',
+                        color: 'var(--text-tertiary)',
+                        display: 'block',
+                        marginBottom: '0.375rem',
+                      }}
+                    >
+                      Siguiente →
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-cormorant)',
+                        fontSize: '1.0625rem',
+                        fontWeight: 600,
+                        color: 'var(--text)',
+                        lineHeight: 1.3,
+                        transition: 'color 0.15s',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text)')}
+                    >
+                      {prevPost.title}
+                    </span>
+                  </Link>
+                )}
               </div>
-            </aside>
+            </nav>
           )}
-        </div>
+        </article>
+
+        {/* TOC sidebar */}
+        {headings.length > 0 && (
+          <aside
+            style={{
+              width: '200px',
+              flexShrink: 0,
+              display: 'none',
+              paddingTop: '3.5rem',
+            }}
+            className="lg:block"
+          >
+            <div style={{ position: 'sticky', top: '80px' }}>
+              <p
+                style={{
+                  fontFamily: 'var(--font-syne)',
+                  fontSize: '0.6rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  color: 'var(--text-tertiary)',
+                  marginBottom: '0.875rem',
+                }}
+              >
+                En este artículo
+              </p>
+              <TableOfContents headings={headings} />
+            </div>
+          </aside>
+        )}
       </div>
     </div>
   )

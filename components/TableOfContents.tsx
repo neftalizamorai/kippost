@@ -34,19 +34,14 @@ export function TableOfContents({ headings }: { headings: Heading[] }) {
   if (headings.length === 0) return null
 
   return (
-    <nav className="space-y-0.5">
-      <p className="text-xs font-medium uppercase tracking-wider mb-3" style={{ color: 'var(--text-tertiary)' }}>
-        Contenido
-      </p>
+    <nav>
       {headings.map(({ id, text, level }) => (
         <a
           key={id}
           href={`#${id}`}
-          className="block text-[13px] py-0.5 leading-snug transition-all duration-150 hover:opacity-80"
+          className={`toc-link ${activeId === id ? 'toc-active' : ''}`}
           style={{
-            paddingLeft: `${(level - 2) * 14}px`,
-            color: activeId === id ? 'var(--text)' : 'var(--text-secondary)',
-            fontWeight: activeId === id ? 500 : 400,
+            paddingLeft: `${0.75 + (level - 2) * 0.875}rem`,
           }}
         >
           {text}

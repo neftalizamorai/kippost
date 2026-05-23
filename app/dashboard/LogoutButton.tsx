@@ -16,11 +16,27 @@ export default function LogoutButton() {
   return (
     <button
       onClick={handleLogout}
-      className="text-xs transition-opacity hover:opacity-60 flex items-center gap-1"
-      style={{ color: 'var(--text-secondary)' }}
       title="Cerrar sesión"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.375rem',
+        fontFamily: 'var(--font-syne)',
+        fontSize: '0.6875rem',
+        fontWeight: 600,
+        letterSpacing: '0.06em',
+        textTransform: 'uppercase',
+        color: 'var(--text-tertiary)',
+        background: 'transparent',
+        border: 'none',
+        cursor: 'pointer',
+        transition: 'color 0.15s ease',
+        padding: '0.25rem 0',
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--error)')}
+      onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
     >
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
         <polyline points="16 17 21 12 16 7"/>
         <line x1="21" y1="12" x2="9" y2="12"/>
