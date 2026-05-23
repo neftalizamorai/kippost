@@ -88,7 +88,7 @@ export default function NewPostPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={handlePreview}
-            className="text-sm px-3 py-1.5 rounded-md border transition-colors hover:bg-[var(--bg-hover)]"
+            className="text-sm px-3 py-1.5 rounded border transition-colors hover:bg-[var(--bg-hover)]"
             style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
           >
             {tab === 'write' ? 'Vista previa' : 'Editar'}
@@ -107,7 +107,7 @@ export default function NewPostPage() {
           <button
             onClick={() => handleSave()}
             disabled={saving}
-            className="text-sm font-medium px-4 py-1.5 rounded-md transition-opacity hover:opacity-80 disabled:opacity-50"
+            className="text-sm font-medium px-4 py-1.5 rounded hover:opacity-90 disabled:opacity-50"
             style={{ background: 'var(--text)', color: 'var(--bg)' }}
           >
             {saving ? 'Guardando...' : published ? 'Publicar' : 'Guardar borrador'}
@@ -116,7 +116,7 @@ export default function NewPostPage() {
       </div>
 
       {error && (
-        <div className="mb-4 px-3 py-2 rounded-md text-sm" style={{ background: 'rgba(224, 62, 62, 0.08)', color: '#e03e3e' }}>
+        <div className="mb-4 px-3 py-2 rounded text-sm" style={{ background: 'rgba(224, 62, 62, 0.08)', color: '#e03e3e' }}>
           {error}
         </div>
       )}
@@ -143,7 +143,7 @@ export default function NewPostPage() {
             onChange={(e) => setExcerpt(e.target.value)}
             rows={2}
             placeholder="Breve descripción del post. Si lo dejas vacío, se generará automáticamente."
-            className="w-full px-3 py-2 text-sm rounded-md border outline-none resize-none focus:ring-1 focus:ring-[var(--text)] transition-all leading-relaxed"
+            className="w-full px-3 py-2 text-sm rounded border outline-none resize-none focus:ring-1 focus:ring-[var(--text)] transition-all leading-relaxed"
             style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
           />
         </div>
@@ -159,7 +159,7 @@ export default function NewPostPage() {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder={`## Introducción\n\nEscribe tu historia aquí...\n\n## Sección\n\nMás contenido...`}
-              className="w-full px-3 py-3 text-sm rounded-md border outline-none resize-y focus:ring-1 focus:ring-[var(--text)] transition-all font-mono leading-relaxed"
+              className="w-full px-3 py-3 text-sm rounded border outline-none resize-y focus:ring-1 focus:ring-[var(--text)] transition-all font-mono leading-relaxed"
               style={{
                 background: 'var(--bg)',
                 borderColor: 'var(--border)',
@@ -169,7 +169,7 @@ export default function NewPostPage() {
             />
           ) : (
             <div
-              className="prose prose-sm min-h-[420px] px-3 py-3 rounded-md border"
+              className="prose prose-sm min-h-[420px] px-3 py-3 rounded border"
               style={{ borderColor: 'var(--border)' }}
               dangerouslySetInnerHTML={{ __html: previewHtml }}
             />
@@ -186,7 +186,7 @@ export default function NewPostPage() {
             value={tagsInput}
             onChange={(e) => setTagsInput(e.target.value)}
             placeholder="javascript, web, tutorial"
-            className="w-full px-3 py-2 text-sm rounded-md border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
+            className="w-full px-3 py-2 text-sm rounded border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
             style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
           />
           <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>Separadas por coma</p>

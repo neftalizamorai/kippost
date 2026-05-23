@@ -127,7 +127,7 @@ export default function BlogView({ profile, posts }: Props) {
                 style={{ border: '1px solid var(--border)' }}
               />
             )}
-            <h2 className="text-xl font-semibold mb-3" style={{ color: 'var(--text)' }}>
+            <h2 className="text-xl font-bold mb-3" style={{ color: 'var(--text)' }}>
               {profile.name}
             </h2>
             {profile.bio ? (
@@ -153,7 +153,7 @@ function PostRow({ post, username, last }: { post: Post; username: string; last:
   return (
     <Link href={`/blog/${username}/${post.slug}`}>
       <div
-        className="group py-5 -mx-2 px-2 rounded-md transition-colors hover:bg-[var(--bg-hover)] cursor-pointer"
+        className="group py-5 -mx-2 px-2 rounded transition-colors hover:bg-[var(--bg-hover)] cursor-pointer"
         style={{ borderBottom: last ? 'none' : '1px solid var(--border)' }}
       >
         <div className="flex items-center gap-2 mb-1.5">

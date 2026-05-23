@@ -18,7 +18,7 @@ export function ShareButton() {
   return (
     <button
       onClick={handleShare}
-      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border transition-colors hover:bg-[var(--bg-hover)]"
+      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded border transition-colors hover:bg-[var(--bg-hover)]"
       style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
     >
       {copied ? (

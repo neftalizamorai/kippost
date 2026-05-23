@@ -12,6 +12,15 @@ const config: Config = {
       fontFamily: {
         sans: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
       },
+      borderRadius: {
+        DEFAULT: '4px',
+        sm: '2px',
+        md: '4px',
+        lg: '4px',
+        xl: '4px',
+        '2xl': '4px',
+        full: '9999px',
+      },
       typography: {
         DEFAULT: {
           css: {

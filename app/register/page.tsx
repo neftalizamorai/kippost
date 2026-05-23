@@ -95,7 +95,7 @@ export default function RegisterPage() {
           KipPost
         </Link>
 
-        <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text)' }}>Crea tu cuenta</h1>
+        <h1 className="text-xl font-bold mb-1" style={{ color: 'var(--text)' }}>Crea tu cuenta</h1>
         <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
           ¿Ya tienes cuenta?{' '}
           <Link href="/login" className="hover:underline" style={{ color: 'var(--text)' }}>
@@ -108,7 +108,7 @@ export default function RegisterPage() {
             <label className="block text-sm mb-1.5" style={{ color: 'var(--text)' }}>
               Username
             </label>
-            <div className="flex items-center rounded-md border overflow-hidden transition-all focus-within:ring-1 focus-within:ring-[var(--text)]" style={{ borderColor: 'var(--border)' }}>
+            <div className="flex items-center rounded border overflow-hidden transition-all focus-within:ring-1 focus-within:ring-[var(--text)]" style={{ borderColor: 'var(--border)' }}>
               <span className="px-3 py-2 text-sm border-r" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
                 kippost.com/blog/
               </span>
@@ -133,7 +133,7 @@ export default function RegisterPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full px-3 py-2 text-sm rounded-md border outline-none transition-all focus:ring-1 focus:ring-[var(--text)]"
+              className="w-full px-3 py-2 text-sm rounded border outline-none transition-all focus:ring-1 focus:ring-[var(--text)]"
               style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
               placeholder="Tu Nombre"
             />
@@ -149,7 +149,7 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
-              className="w-full px-3 py-2 text-sm rounded-md border outline-none transition-all focus:ring-1 focus:ring-[var(--text)]"
+              className="w-full px-3 py-2 text-sm rounded border outline-none transition-all focus:ring-1 focus:ring-[var(--text)]"
               style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
               placeholder="tu@correo.com"
             />
@@ -166,7 +166,7 @@ export default function RegisterPage() {
               required
               autoComplete="new-password"
               minLength={6}
-              className="w-full px-3 py-2 text-sm rounded-md border outline-none transition-all focus:ring-1 focus:ring-[var(--text)]"
+              className="w-full px-3 py-2 text-sm rounded border outline-none transition-all focus:ring-1 focus:ring-[var(--text)]"
               style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
               placeholder="Mínimo 6 caracteres"
             />
@@ -179,7 +179,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 text-sm font-medium rounded-md transition-opacity hover:opacity-80 disabled:opacity-50"
+            className="w-full py-2.5 text-sm font-medium rounded hover:opacity-90 disabled:opacity-50"
             style={{ background: 'var(--text)', color: 'var(--bg)' }}
           >
             {loading ? 'Creando cuenta...' : 'Crear cuenta'}

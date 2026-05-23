@@ -22,14 +22,14 @@ export default async function DashboardPage() {
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="text-xl font-semibold" style={{ color: 'var(--text)' }}>Mis posts</h1>
+          <h1 className="text-xl font-bold" style={{ color: 'var(--text)' }}>Mis posts</h1>
           <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>
             {total} total · {published} publicados
           </p>
         </div>
         <Link
           href="/dashboard/new"
-          className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-md transition-opacity hover:opacity-80"
+          className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded hover:opacity-90"
           style={{ background: 'var(--text)', color: 'var(--bg)' }}
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -46,7 +46,7 @@ export default async function DashboardPage() {
           {posts.map((post) => (
             <div
               key={post.id}
-              className="group flex items-start gap-4 py-4 -mx-2 px-2 rounded-md transition-colors hover:bg-[var(--bg-hover)]"
+              className="group flex items-start gap-4 py-4 -mx-2 px-2 rounded transition-colors hover:bg-[var(--bg-hover)]"
               style={{ borderBottom: '1px solid var(--border)' }}
             >
               <div className="flex-1 min-w-0">
@@ -94,7 +94,7 @@ export default async function DashboardPage() {
 
               <Link
                 href={`/dashboard/edit/${post.id}`}
-                className="flex-shrink-0 text-xs px-3 py-1.5 rounded-md border transition-colors opacity-0 group-hover:opacity-100 hover:bg-[var(--bg-secondary)]"
+                className="flex-shrink-0 text-xs px-3 py-1.5 rounded border transition-colors opacity-0 group-hover:opacity-100 hover:bg-[var(--bg-secondary)]"
                 style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
               >
                 Editar
@@ -104,7 +104,7 @@ export default async function DashboardPage() {
         </div>
       ) : (
         <div
-          className="text-center py-20 rounded-lg border"
+          className="text-center py-20 rounded border"
           style={{ borderColor: 'var(--border)', borderStyle: 'dashed' }}
         >
           <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>

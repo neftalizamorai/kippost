@@ -80,7 +80,7 @@ export default async function BlogPage({ params }: Props) {
               </div>
             )}
             <div>
-              <h1 className="text-xl font-semibold leading-tight" style={{ color: 'var(--text)' }}>
+              <h1 className="text-xl font-bold leading-tight" style={{ color: 'var(--text)' }}>
                 {profile.name}
               </h1>
               <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>

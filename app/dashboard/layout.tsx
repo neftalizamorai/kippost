@@ -110,7 +110,7 @@ function NavItem({
     <Link
       href={href}
       target={external ? '_blank' : undefined}
-      className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors hover:bg-[var(--bg-hover)]"
+      className="flex items-center gap-2.5 px-2.5 py-1.5 rounded text-sm transition-colors hover:bg-[var(--bg-hover)]"
       style={{ color: 'var(--text)' }}
     >
       <span style={{ color: 'var(--text-secondary)' }}>{icon}</span>

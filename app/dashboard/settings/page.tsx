@@ -70,7 +70,7 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-lg mx-auto px-8 py-10">
-      <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text)' }}>Perfil</h1>
+      <h1 className="text-xl font-bold mb-1" style={{ color: 'var(--text)' }}>Perfil</h1>
       <p className="text-sm mb-8" style={{ color: 'var(--text-secondary)' }}>
         Tu blog público está en{' '}
         <span className="font-mono text-xs" style={{ color: 'var(--text)' }}>/blog/{username}</span>
@@ -105,7 +105,7 @@ export default function SettingsPage() {
             type="text"
             value={username}
             disabled
-            className="w-full px-3 py-2 text-sm rounded-md border cursor-not-allowed opacity-60"
+            className="w-full px-3 py-2 text-sm rounded border cursor-not-allowed opacity-60"
             style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text)' }}
           />
           <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>El username no se puede cambiar.</p>
@@ -119,7 +119,7 @@ export default function SettingsPage() {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-3 py-2 text-sm rounded-md border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
+            className="w-full px-3 py-2 text-sm rounded border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
             style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
             placeholder="Tu nombre"
           />
@@ -135,7 +135,7 @@ export default function SettingsPage() {
             rows={3}
             maxLength={200}
             placeholder="Cuéntale a tus lectores quién eres..."
-            className="w-full px-3 py-2 text-sm rounded-md border outline-none resize-none focus:ring-1 focus:ring-[var(--text)] transition-all leading-relaxed"
+            className="w-full px-3 py-2 text-sm rounded border outline-none resize-none focus:ring-1 focus:ring-[var(--text)] transition-all leading-relaxed"
             style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
           />
           <p className="text-xs mt-1 text-right" style={{ color: 'var(--text-tertiary)' }}>{bio.length}/200</p>
@@ -150,7 +150,7 @@ export default function SettingsPage() {
             value={avatarUrl}
             onChange={(e) => setAvatarUrl(e.target.value)}
             placeholder="https://..."
-            className="w-full px-3 py-2 text-sm rounded-md border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
+            className="w-full px-3 py-2 text-sm rounded border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
             style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
           />
           <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>Usa una URL de imagen pública (ej: Gravatar, imgur).</p>
@@ -163,7 +163,7 @@ export default function SettingsPage() {
         <button
           type="submit"
           disabled={saving}
-          className="text-sm font-medium px-5 py-2 rounded-md transition-all hover:opacity-80 disabled:opacity-50"
+          className="text-sm font-medium px-5 py-2 rounded hover:opacity-90 disabled:opacity-50"
           style={{ background: saved ? '#3a7a52' : 'var(--text)', color: 'var(--bg)' }}
         >
           {saving ? 'Guardando...' : saved ? '✓ Guardado' : 'Guardar cambios'}
