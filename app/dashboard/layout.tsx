@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import LogoutButton from './LogoutButton'
 import SidebarNavLinks from '@/components/SidebarNavLinks'
+import DashboardBreadcrumb from '@/components/DashboardBreadcrumb'
 import { Suspense } from 'react'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -74,25 +75,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top bar */}
         <header
-          className="flex items-center justify-end gap-1 px-6 flex-shrink-0"
-          style={{ borderBottom: '1px solid var(--border)', height: '48px', background: 'var(--bg)' }}
+          className="flex items-center justify-between px-6 flex-shrink-0"
+          style={{ borderBottom: '1px solid var(--border)', height: '44px', background: 'var(--bg)' }}
         >
-          <ThemeToggle />
-          {profile?.avatar_url ? (
-            <img
-              src={profile.avatar_url}
-              alt={profile.name}
-              className="w-7 h-7 rounded-full object-cover ml-1"
-              style={{ border: '1px solid var(--border)' }}
-            />
-          ) : (
-            <div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold ml-1"
-              style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
-            >
-              {profile?.name?.[0]?.toUpperCase() ?? '?'}
-            </div>
-          )}
+          <Suspense fallback={null}>
+            <DashboardBreadcrumb siteName={profile?.name ?? 'KipPost'} />
+          </Suspense>
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+          </div>
         </header>
 
         {/* Page content */}
