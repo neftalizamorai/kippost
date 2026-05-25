@@ -12,10 +12,14 @@ interface Props {
 export default function SidebarNavLinks({ username, publishedCount, draftCount }: Props) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const tab = searchParams.get('tab') ?? 'published'
+  const tab = searchParams.get('tab') // null = 'all'
 
   const isActive = (href: string) => pathname === href
-  const isTab = (t: string) => tab === t && pathname === '/dashboard'
+  const isTab = (t: string) => {
+    if (pathname !== '/dashboard') return false
+    if (t === 'all') return !tab
+    return tab === t
+  }
 
   const navItem = (href: string, label: string, icon: React.ReactNode, external?: boolean) => (
     <Link
@@ -39,14 +43,14 @@ export default function SidebarNavLinks({ username, publishedCount, draftCount }
     </Link>
   )
 
-  const subItem = (href: string, label: string, count?: number) => (
+  const subItem = (href: string, label: string, tabKey: string, count?: number) => (
     <Link
       href={href}
       className="flex items-center justify-between pl-8 pr-2.5 py-1 rounded text-sm transition-colors hover:bg-[var(--bg-hover)]"
       style={{
-        color: isTab(href.includes('draft') ? 'draft' : 'published') ? 'var(--text)' : 'var(--text-secondary)',
-        background: isTab(href.includes('draft') ? 'draft' : 'published') ? 'var(--bg-hover)' : undefined,
-        fontWeight: isTab(href.includes('draft') ? 'draft' : 'published') ? 500 : 400,
+        color: isTab(tabKey) ? 'var(--text)' : 'var(--text-secondary)',
+        background: isTab(tabKey) ? 'var(--bg-hover)' : undefined,
+        fontWeight: isTab(tabKey) ? 500 : 400,
       }}
     >
       {label}
@@ -108,8 +112,9 @@ export default function SidebarNavLinks({ username, publishedCount, draftCount }
           Publicaciones
         </div>
         <div className="flex flex-col gap-0.5 mt-0.5">
-          {subItem('/dashboard?tab=published', 'Publicado', publishedCount)}
-          {subItem('/dashboard?tab=draft', 'Borradores', draftCount)}
+          {subItem('/dashboard', 'Todos', 'all', publishedCount + draftCount)}
+          {subItem('/dashboard?tab=published', 'Publicado', 'published', publishedCount)}
+          {subItem('/dashboard?tab=draft', 'Borradores', 'draft', draftCount)}
         </div>
       </div>
 
