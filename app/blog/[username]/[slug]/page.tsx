@@ -67,8 +67,10 @@ export default async function PostPage({ params }: Props) {
   const prevPost = idx > 0 ? allPosts![idx - 1] : null
   const nextPost = idx >= 0 && idx < (allPosts?.length ?? 0) - 1 ? allPosts![idx + 1] : null
 
-  // Render markdown → HTML with heading IDs
-  const rawHtml = marked.parse(post.content || '') as string
+  // Support both HTML (new posts) and Markdown (legacy posts)
+  const rawHtml = post.content?.trimStart().startsWith('<')
+    ? post.content
+    : marked.parse(post.content || '') as string
   const html = addHeadingIds(rawHtml)
   const headings = extractHeadings(html)
   const mins = readingTime(post.content || '')

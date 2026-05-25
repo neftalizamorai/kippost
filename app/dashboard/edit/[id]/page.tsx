@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { generateExcerpt } from '@/lib/utils'
 import Link from 'next/link'
+import { RichTextEditor } from '@/components/RichTextEditor'
 
 interface Post {
   id: string
@@ -23,6 +24,7 @@ export default function EditPostPage() {
   const [post, setPost] = useState<Post | null>(null)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
+  const [initialHtml, setInitialHtml] = useState<string | null>(null)
   const [excerpt, setExcerpt] = useState('')
   const [tagsInput, setTagsInput] = useState('')
   const [published, setPublished] = useState(false)
@@ -30,8 +32,6 @@ export default function EditPostPage() {
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
-  const [tab, setTab] = useState<'write' | 'preview'>('write')
-  const [previewHtml, setPreviewHtml] = useState('')
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
@@ -47,35 +47,33 @@ export default function EditPostPage() {
       if (data) {
         setPost(data)
         setTitle(data.title)
-        setContent(data.content)
         setExcerpt(data.excerpt || '')
         setTagsInput(data.tags?.join(', ') || '')
         setPublished(data.published)
+
+        // Convert Markdown to HTML for old posts
+        let html = data.content || ''
+        if (html && !html.trimStart().startsWith('<')) {
+          const { marked } = await import('marked')
+          html = marked.parse(html) as string
+        }
+        setInitialHtml(html)
+        setContent(html)
       }
       setLoading(false)
     }
     load()
   }, [postId])
 
-  const handlePreview = async () => {
-    if (tab === 'write') {
-      const { marked } = await import('marked')
-      setPreviewHtml(marked.parse(content) as string)
-      setTab('preview')
-    } else {
-      setTab('write')
-    }
-  }
-
   const handleSave = async () => {
     if (!title.trim()) { setError('El título es obligatorio.'); return }
-
     setSaving(true)
     setError(null)
 
     const supabase = createClient()
     const tags = tagsInput.split(',').map(t => t.trim()).filter(Boolean)
-    const finalExcerpt = excerpt.trim() || generateExcerpt(content)
+    const plainText = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+    const finalExcerpt = excerpt.trim() || generateExcerpt(plainText)
 
     const { error: err } = await supabase
       .from('posts')
@@ -100,7 +98,6 @@ export default function EditPostPage() {
 
   const handleDelete = async () => {
     if (!confirm('¿Eliminar este post? Esta acción no se puede deshacer.')) return
-
     setDeleting(true)
     const supabase = createClient()
     await supabase.from('posts').delete().eq('id', postId)
@@ -126,35 +123,19 @@ export default function EditPostPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-8 py-10">
-      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="text-sm transition-opacity hover:opacity-60" style={{ color: 'var(--text-secondary)' }}>
+          <Link href="/dashboard" className="text-sm hover:opacity-60 transition-opacity" style={{ color: 'var(--text-secondary)' }}>
             ← Volver
           </Link>
           <span style={{ color: 'var(--border)' }}>|</span>
           <h1 className="text-sm font-medium" style={{ color: 'var(--text)' }}>Editando post</h1>
         </div>
-
         <div className="flex items-center gap-2">
-          <button
-            onClick={handlePreview}
-            className="text-sm px-3 py-1.5 rounded border transition-colors hover:bg-[var(--bg-hover)]"
-            style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
-          >
-            {tab === 'write' ? 'Vista previa' : 'Editar'}
-          </button>
-
           <label className="flex items-center gap-1.5 text-sm cursor-pointer select-none" style={{ color: 'var(--text-secondary)' }}>
-            <input
-              type="checkbox"
-              checked={published}
-              onChange={(e) => setPublished(e.target.checked)}
-              className="rounded"
-            />
+            <input type="checkbox" checked={published} onChange={e => setPublished(e.target.checked)} className="rounded" />
             Publicado
           </label>
-
           <button
             onClick={handleSave}
             disabled={saving}
@@ -163,11 +144,10 @@ export default function EditPostPage() {
           >
             {saving ? 'Guardando...' : saved ? '✓ Guardado' : 'Guardar'}
           </button>
-
           <button
             onClick={handleDelete}
             disabled={deleting}
-            className="text-sm px-3 py-1.5 rounded border transition-colors hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
+            className="text-sm px-3 py-1.5 rounded border transition-colors hover:bg-red-50 disabled:opacity-50"
             style={{ borderColor: 'var(--border)', color: '#e03e3e' }}
           >
             {deleting ? '...' : 'Eliminar'}
@@ -176,7 +156,7 @@ export default function EditPostPage() {
       </div>
 
       {error && (
-        <div className="mb-4 px-3 py-2 rounded text-sm" style={{ background: 'rgba(224, 62, 62, 0.08)', color: '#e03e3e' }}>
+        <div className="mb-4 px-3 py-2 rounded text-sm" style={{ background: 'rgba(224,62,62,0.08)', color: '#e03e3e' }}>
           {error}
         </div>
       )}
@@ -184,9 +164,9 @@ export default function EditPostPage() {
       <input
         type="text"
         value={title}
-        onChange={(e) => setTitle(e.target.value)}
+        onChange={e => setTitle(e.target.value)}
         placeholder="Título"
-        className="w-full text-3xl font-semibold bg-transparent border-none outline-none mb-6 leading-tight"
+        className="w-full text-3xl font-bold bg-transparent border-none outline-none mb-6 leading-tight"
         style={{ color: 'var(--text)' }}
       />
 
@@ -197,7 +177,7 @@ export default function EditPostPage() {
           </label>
           <textarea
             value={excerpt}
-            onChange={(e) => setExcerpt(e.target.value)}
+            onChange={e => setExcerpt(e.target.value)}
             rows={2}
             placeholder="Breve descripción del post."
             className="w-full px-3 py-2 text-sm rounded border outline-none resize-none focus:ring-1 focus:ring-[var(--text)] transition-all leading-relaxed"
@@ -207,27 +187,10 @@ export default function EditPostPage() {
 
         <div>
           <label className="block text-xs font-medium uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
-            Contenido (Markdown)
+            Contenido
           </label>
-
-          {tab === 'write' ? (
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="w-full px-3 py-3 text-sm rounded border outline-none resize-y focus:ring-1 focus:ring-[var(--text)] transition-all font-mono leading-relaxed"
-              style={{
-                background: 'var(--bg)',
-                borderColor: 'var(--border)',
-                color: 'var(--text)',
-                minHeight: '420px',
-              }}
-            />
-          ) : (
-            <div
-              className="prose prose-sm min-h-[420px] px-3 py-3 rounded border"
-              style={{ borderColor: 'var(--border)' }}
-              dangerouslySetInnerHTML={{ __html: previewHtml }}
-            />
+          {initialHtml !== null && (
+            <RichTextEditor content={initialHtml} onChange={setContent} />
           )}
         </div>
 
@@ -238,7 +201,7 @@ export default function EditPostPage() {
           <input
             type="text"
             value={tagsInput}
-            onChange={(e) => setTagsInput(e.target.value)}
+            onChange={e => setTagsInput(e.target.value)}
             placeholder="javascript, web, tutorial"
             className="w-full px-3 py-2 text-sm rounded border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
             style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
