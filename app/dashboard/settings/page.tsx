@@ -103,6 +103,7 @@ export default function SettingsPage() {
   const [avatarUrl, setAvatarUrl] = useState('')
   const [username, setUsername] = useState('')
   const [social, setSocial] = useState<SocialLinks>({})
+  const [template, setTemplate] = useState('minimal')
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
 
@@ -124,6 +125,7 @@ export default function SettingsPage() {
         setBio(data.bio || '')
         setAvatarUrl(data.avatar_url || '')
         setSocial(data.social_links || {})
+        setTemplate(data.template || 'minimal')
       }
       setLoading(false)
     }
@@ -151,6 +153,7 @@ export default function SettingsPage() {
         bio: bio.trim(),
         avatar_url: avatarUrl.trim(),
         social_links: cleanSocial,
+        template,
       })
       .eq('id', user.id)
 
@@ -278,6 +281,75 @@ export default function SettingsPage() {
                   />
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Template picker */}
+        <div className="pt-2">
+          <p className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>Template del blog</p>
+          <p className="text-xs mb-4" style={{ color: 'var(--text-tertiary)' }}>
+            Elige cómo se ve tu página pública.
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              {
+                id: 'minimal',
+                label: 'Minimal',
+                desc: 'Avatar pequeño, bio compacta, tabs de navegación',
+                preview: (
+                  <div className="p-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full flex-shrink-0" style={{ background: 'var(--bg-secondary)' }} />
+                      <div className="space-y-0.5">
+                        <div className="h-2 w-16 rounded" style={{ background: 'var(--bg-secondary)' }} />
+                        <div className="h-1.5 w-10 rounded" style={{ background: 'var(--bg-secondary)' }} />
+                      </div>
+                    </div>
+                    <div className="h-1.5 w-full rounded" style={{ background: 'var(--bg-secondary)' }} />
+                    <div className="h-1.5 w-3/4 rounded" style={{ background: 'var(--bg-secondary)' }} />
+                    <div className="flex gap-2 pt-1" style={{ borderTop: '1px solid var(--border)' }}>
+                      {['·','·','·'].map((_, i) => <div key={i} className="h-1.5 w-8 rounded" style={{ background: 'var(--bg-secondary)' }} />)}
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                id: 'hero',
+                label: 'Hero',
+                desc: 'Avatar grande, saludo destacado, bio en cita',
+                preview: (
+                  <div className="p-3 space-y-2">
+                    <div className="w-8 h-8 rounded-full" style={{ background: 'linear-gradient(135deg,#c9a84c,#f0d080)', padding: '2px' }}>
+                      <div className="w-full h-full rounded-full" style={{ background: 'var(--bg-secondary)' }} />
+                    </div>
+                    <div className="h-3 w-20 rounded font-bold" style={{ background: 'var(--text)', opacity: 0.15 }} />
+                    <div className="pl-2 space-y-0.5" style={{ borderLeft: '2px solid var(--border)' }}>
+                      <div className="h-1.5 w-full rounded" style={{ background: 'var(--bg-secondary)' }} />
+                      <div className="h-1.5 w-4/5 rounded" style={{ background: 'var(--bg-secondary)' }} />
+                    </div>
+                  </div>
+                ),
+              },
+            ].map(t => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTemplate(t.id)}
+                className="text-left rounded border overflow-hidden transition-all"
+                style={{
+                  borderColor: template === t.id ? 'var(--text)' : 'var(--border)',
+                  boxShadow: template === t.id ? '0 0 0 1px var(--text)' : 'none',
+                }}
+              >
+                <div style={{ background: 'var(--bg-secondary)' }}>
+                  {t.preview}
+                </div>
+                <div className="px-3 py-2">
+                  <p className="text-xs font-medium" style={{ color: 'var(--text)' }}>{t.label}</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>{t.desc}</p>
+                </div>
+              </button>
             ))}
           </div>
         </div>

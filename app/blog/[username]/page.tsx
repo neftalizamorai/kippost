@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import BlogView from './BlogView'
+import BlogHeroView from './BlogHeroView'
 import type { Metadata } from 'next'
 
 type SocialLinks = Record<string, string>
@@ -129,7 +130,7 @@ export default async function BlogPage({ params }: Props) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, username, name, bio, avatar_url, social_links')
+    .select('id, username, name, bio, avatar_url, social_links, template')
     .eq('username', params.username)
     .single()
 
@@ -201,48 +202,47 @@ export default async function BlogPage({ params }: Props) {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-6 py-12">
-        {/* Blog Header */}
-        <header className="mb-10">
-          <div className="flex items-start gap-4">
-            {profile.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={profile.name}
-                className="w-12 h-12 rounded-full object-cover flex-shrink-0"
-                style={{ border: '1px solid var(--border)' }}
-              />
-            ) : (
-              <div
-                className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-lg font-semibold"
-                style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
-              >
-                {profile.name?.[0]?.toUpperCase() || profile.username[0].toUpperCase()}
-              </div>
-            )}
-            <div>
-              <h1 className="text-xl font-bold leading-tight" style={{ color: 'var(--text)' }}>
-                {profile.name}
-              </h1>
-              <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                @{profile.username}
-              </p>
-              {profile.bio && (
-                <p className="text-sm mt-2 leading-relaxed max-w-sm" style={{ color: 'var(--text-secondary)' }}>
-                  {profile.bio}
-                </p>
+      {profile.template === 'hero' ? (
+        <BlogHeroView profile={profile} posts={posts ?? []} />
+      ) : (
+        <div className="max-w-2xl mx-auto px-6 py-12">
+          {/* Minimal header */}
+          <header className="mb-10">
+            <div className="flex items-start gap-4">
+              {profile.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.name}
+                  className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                  style={{ border: '1px solid var(--border)' }}
+                />
+              ) : (
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-lg font-semibold"
+                  style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
+                >
+                  {profile.name?.[0]?.toUpperCase() || profile.username[0].toUpperCase()}
+                </div>
               )}
-              <SocialLinks links={profile.social_links ?? {}} />
+              <div>
+                <h1 className="text-xl font-bold leading-tight" style={{ color: 'var(--text)' }}>
+                  {profile.name}
+                </h1>
+                <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                  @{profile.username}
+                </p>
+                {profile.bio && (
+                  <p className="text-sm mt-2 leading-relaxed max-w-sm" style={{ color: 'var(--text-secondary)' }}>
+                    {profile.bio}
+                  </p>
+                )}
+                <SocialLinks links={profile.social_links ?? {}} />
+              </div>
             </div>
-          </div>
-        </header>
-
-        {/* Tabs + content */}
-        <BlogView
-          profile={profile}
-          posts={posts ?? []}
-        />
-      </div>
+          </header>
+          <BlogView profile={profile} posts={posts ?? []} />
+        </div>
+      )}
     </div>
   )
 }
