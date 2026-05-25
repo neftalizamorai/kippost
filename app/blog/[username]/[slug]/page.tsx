@@ -154,6 +154,18 @@ export default async function PostPage({ params }: Props) {
         <div className="flex gap-16">
           {/* Article */}
           <article className="flex-1 min-w-0 max-w-2xl">
+            {/* Cover image */}
+            {post.cover_image_url && (
+              <div className="mb-8 rounded overflow-hidden" style={{ maxHeight: '360px' }}>
+                <img
+                  src={post.cover_image_url}
+                  alt={post.title}
+                  className="w-full object-cover"
+                  style={{ maxHeight: '360px' }}
+                />
+              </div>
+            )}
+
             {/* Meta */}
             <div className="flex items-center gap-2 mb-5 text-xs" style={{ color: 'var(--text-tertiary)' }}>
               <time>{formatDate(post.created_at)}</time>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, ChangeEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { slugify, generateExcerpt } from '@/lib/utils'
@@ -20,6 +20,8 @@ export default function NewPostPage() {
   const [saving, setSaving] = useState(false)
   const [initialized, setInitialized] = useState(false)
   const [draftContent, setDraftContent] = useState('')
+  const [coverImageUrl, setCoverImageUrl] = useState('')
+  const coverInputRef = useRef<HTMLInputElement>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>()
   const router = useRouter()
 
@@ -35,6 +37,7 @@ export default function NewPostPage() {
           setContent(draft.content || '')
           setExcerpt(draft.excerpt || '')
           setTags(draft.tags || [])
+          setCoverImageUrl(draft.coverImageUrl || '')
         }
       }
     } catch {}
@@ -49,12 +52,12 @@ export default function NewPostPage() {
     clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
       try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, content, excerpt, tags }))
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, content, excerpt, tags, coverImageUrl }))
       } catch {}
     }, 2000)
 
     return () => clearTimeout(saveTimerRef.current)
-  }, [title, content, excerpt, tags, initialized])
+  }, [title, content, excerpt, tags, coverImageUrl, initialized])
 
   const handleSave = async () => {
     if (!title.trim()) { toast.error('El título es obligatorio.'); return }
@@ -68,7 +71,7 @@ export default function NewPostPage() {
     const plainText = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
     const finalExcerpt = excerpt.trim() || generateExcerpt(plainText)
 
-    const payload = { user_id: user.id, title: title.trim(), content, excerpt: finalExcerpt, tags, published, slug }
+    const payload = { user_id: user.id, title: title.trim(), content, excerpt: finalExcerpt, tags, published, slug, cover_image_url: coverImageUrl || null }
 
     const { error: err } = await supabase.from('posts').insert(payload)
 
@@ -85,6 +88,21 @@ export default function NewPostPage() {
     try { localStorage.removeItem(DRAFT_KEY) } catch {}
     toast.success(published ? 'Post publicado' : 'Borrador guardado')
     router.push('/dashboard')
+  }
+
+  const handleCoverUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const ext = file.name.split('.').pop()
+    const path = `${user.id}/${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('covers').upload(path, file, { upsert: true })
+    if (error) { toast.error(error.message); return }
+    const { data: { publicUrl } } = supabase.storage.from('covers').getPublicUrl(path)
+    setCoverImageUrl(publicUrl)
+    e.target.value = ''
   }
 
   return (
@@ -111,6 +129,27 @@ export default function NewPostPage() {
             {saving ? 'Guardando...' : published ? 'Publicar' : 'Guardar borrador'}
           </button>
         </div>
+      </div>
+
+      {/* Cover image */}
+      <div className="mb-6">
+        <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+        {coverImageUrl ? (
+          <div className="relative group rounded overflow-hidden" style={{ height: '220px' }}>
+            <img src={coverImageUrl} alt="Portada" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+              <button type="button" onClick={() => coverInputRef.current?.click()} className="text-white text-sm px-3 py-1.5 rounded-md bg-black/30 hover:bg-black/50 backdrop-blur-sm transition-colors">Cambiar</button>
+              <button type="button" onClick={() => setCoverImageUrl('')} className="text-white text-sm px-3 py-1.5 rounded-md bg-black/30 hover:bg-black/50 backdrop-blur-sm transition-colors">Eliminar</button>
+            </div>
+          </div>
+        ) : (
+          <button type="button" onClick={() => coverInputRef.current?.click()} className="flex items-center gap-2 text-sm transition-opacity hover:opacity-60" style={{ color: 'var(--text-tertiary)' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+            </svg>
+            Añadir imagen de portada
+          </button>
+        )}
       </div>
 
       <input

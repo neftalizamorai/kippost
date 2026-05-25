@@ -15,6 +15,7 @@ interface Post {
   created_at: string
   slug: string
   tags: string[] | null
+  cover_image_url: string | null
 }
 
 interface Props {
@@ -56,6 +57,11 @@ function PostCard({ post, username }: { post: Post; username: string }) {
       className="rounded border flex flex-col overflow-hidden transition-colors hover:bg-[var(--bg-hover)]"
       style={{ borderColor: 'var(--border)' }}
     >
+      {post.cover_image_url && (
+        <div className="h-32 overflow-hidden flex-shrink-0">
+          <img src={post.cover_image_url} alt="" className="w-full h-full object-cover" />
+        </div>
+      )}
       <div className="p-4 flex flex-col gap-2.5 flex-1">
         <Link
           href={`/dashboard/edit/${post.id}`}
@@ -131,7 +137,7 @@ function PostCard({ post, username }: { post: Post; username: string }) {
 }
 
 function PostRow({ post, username, last }: { post: Post; username: string; last: boolean }) {
-  const cover = extractCover(post.content)
+  const cover = post.cover_image_url ?? extractCover(post.content)
 
   return (
     <div
