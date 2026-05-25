@@ -94,6 +94,12 @@ export default function LoginPage() {
           >
             {loading ? 'Entrando...' : 'Iniciar sesión'}
           </button>
+
+          <p className="text-center text-sm" style={{ color: 'var(--text-secondary)' }}>
+            <Link href="/forgot-password" className="hover:underline" style={{ color: 'var(--text-secondary)' }}>
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </p>
         </form>
       </div>
     </div>

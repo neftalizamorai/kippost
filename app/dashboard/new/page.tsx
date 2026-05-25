@@ -1,11 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { slugify, generateExcerpt } from '@/lib/utils'
 import Link from 'next/link'
 import { RichTextEditor } from '@/components/RichTextEditor'
+import { toast } from 'sonner'
+
+const DRAFT_KEY = 'kippost:new-draft'
 
 export default function NewPostPage() {
   const [title, setTitle] = useState('')
@@ -14,13 +17,47 @@ export default function NewPostPage() {
   const [tagsInput, setTagsInput] = useState('')
   const [published, setPublished] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [initialized, setInitialized] = useState(false)
+  const [draftContent, setDraftContent] = useState('')
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>()
   const router = useRouter()
 
+  // Restore draft on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY)
+      if (raw) {
+        const draft = JSON.parse(raw)
+        if (draft.title || draft.content) {
+          setTitle(draft.title || '')
+          setDraftContent(draft.content || '')
+          setContent(draft.content || '')
+          setExcerpt(draft.excerpt || '')
+          setTagsInput(draft.tags || '')
+        }
+      }
+    } catch {}
+    setInitialized(true)
+  }, [])
+
+  // Autosave debounced
+  useEffect(() => {
+    if (!initialized) return
+    if (!title && !content) return
+
+    clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, content, excerpt, tags: tagsInput }))
+      } catch {}
+    }, 2000)
+
+    return () => clearTimeout(saveTimerRef.current)
+  }, [title, content, excerpt, tagsInput, initialized])
+
   const handleSave = async () => {
-    if (!title.trim()) { setError('El título es obligatorio.'); return }
+    if (!title.trim()) { toast.error('El título es obligatorio.'); return }
     setSaving(true)
-    setError(null)
 
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -40,11 +77,13 @@ export default function NewPostPage() {
         ...payload,
         slug: `${slug}-${Date.now().toString(36)}`,
       })
-      if (retryErr) { setError(retryErr.message); setSaving(false); return }
+      if (retryErr) { toast.error(retryErr.message); setSaving(false); return }
     } else if (err) {
-      setError(err.message); setSaving(false); return
+      toast.error(err.message); setSaving(false); return
     }
 
+    try { localStorage.removeItem(DRAFT_KEY) } catch {}
+    toast.success(published ? 'Post publicado' : 'Borrador guardado')
     router.push('/dashboard')
   }
 
@@ -74,12 +113,6 @@ export default function NewPostPage() {
         </div>
       </div>
 
-      {error && (
-        <div className="mb-4 px-3 py-2 rounded text-sm" style={{ background: 'rgba(224,62,62,0.08)', color: '#e03e3e' }}>
-          {error}
-        </div>
-      )}
-
       <input
         type="text"
         value={title}
@@ -108,7 +141,9 @@ export default function NewPostPage() {
           <label className="block text-xs font-medium uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
             Contenido
           </label>
-          <RichTextEditor content="" onChange={setContent} />
+          {initialized && (
+            <RichTextEditor content={draftContent} onChange={setContent} />
+          )}
         </div>
 
         <div>

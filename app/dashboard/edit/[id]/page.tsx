@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { generateExcerpt } from '@/lib/utils'
 import Link from 'next/link'
 import { RichTextEditor } from '@/components/RichTextEditor'
+import { toast } from 'sonner'
 
 interface Post {
   id: string
@@ -88,9 +89,10 @@ export default function EditPostPage() {
       .eq('id', postId)
 
     if (err) {
-      setError(err.message)
+      toast.error(err.message)
     } else {
       setSaved(true)
+      toast.success(published ? 'Post publicado' : 'Cambios guardados')
       setTimeout(() => setSaved(false), 2500)
     }
     setSaving(false)
