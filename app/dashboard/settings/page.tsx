@@ -3,15 +3,107 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
+import { toast } from 'sonner'
+
+interface SocialLinks {
+  website?: string
+  twitter?: string
+  instagram?: string
+  linkedin?: string
+  github?: string
+  youtube?: string
+  tiktok?: string
+}
+
+const NETWORKS: { key: keyof SocialLinks; label: string; placeholder: string; prefix: string; icon: React.ReactNode }[] = [
+  {
+    key: 'website',
+    label: 'Sitio web',
+    placeholder: 'https://tusitio.com',
+    prefix: '',
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+      </svg>
+    ),
+  },
+  {
+    key: 'twitter',
+    label: 'Twitter / X',
+    placeholder: 'usuario (sin @)',
+    prefix: 'twitter.com/',
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+      </svg>
+    ),
+  },
+  {
+    key: 'instagram',
+    label: 'Instagram',
+    placeholder: 'usuario (sin @)',
+    prefix: 'instagram.com/',
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/>
+        <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/>
+      </svg>
+    ),
+  },
+  {
+    key: 'linkedin',
+    label: 'LinkedIn',
+    placeholder: 'usuario',
+    prefix: 'linkedin.com/in/',
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/>
+      </svg>
+    ),
+  },
+  {
+    key: 'github',
+    label: 'GitHub',
+    placeholder: 'usuario',
+    prefix: 'github.com/',
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+      </svg>
+    ),
+  },
+  {
+    key: 'youtube',
+    label: 'YouTube',
+    placeholder: '@canal o URL completa',
+    prefix: '',
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+      </svg>
+    ),
+  },
+  {
+    key: 'tiktok',
+    label: 'TikTok',
+    placeholder: 'usuario (sin @)',
+    prefix: 'tiktok.com/@',
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z"/>
+      </svg>
+    ),
+  },
+]
 
 export default function SettingsPage() {
   const [name, setName] = useState('')
   const [bio, setBio] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
   const [username, setUsername] = useState('')
+  const [social, setSocial] = useState<SocialLinks>({})
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -31,6 +123,7 @@ export default function SettingsPage() {
         setName(data.name || '')
         setBio(data.bio || '')
         setAvatarUrl(data.avatar_url || '')
+        setSocial(data.social_links || {})
       }
       setLoading(false)
     }
@@ -40,22 +133,31 @@ export default function SettingsPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
-    setError(null)
 
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const { error: err } = await supabase
+    const cleanSocial: SocialLinks = {}
+    for (const { key } of NETWORKS) {
+      const val = social[key]?.trim()
+      if (val) cleanSocial[key] = val
+    }
+
+    const { error } = await supabase
       .from('profiles')
-      .update({ name: name.trim(), bio: bio.trim(), avatar_url: avatarUrl.trim() })
+      .update({
+        name: name.trim(),
+        bio: bio.trim(),
+        avatar_url: avatarUrl.trim(),
+        social_links: cleanSocial,
+      })
       .eq('id', user.id)
 
-    if (err) {
-      setError(err.message)
+    if (error) {
+      toast.error(error.message)
     } else {
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2500)
+      toast.success('Cambios guardados')
     }
     setSaving(false)
   }
@@ -80,14 +182,7 @@ export default function SettingsPage() {
       {avatarUrl && (
         <div className="mb-6 flex items-center gap-3">
           <div className="w-14 h-14 rounded-full overflow-hidden border" style={{ borderColor: 'var(--border)' }}>
-            <Image
-              src={avatarUrl}
-              alt="Avatar"
-              width={56}
-              height={56}
-              className="w-full h-full object-cover"
-              unoptimized
-            />
+            <Image src={avatarUrl} alt="Avatar" width={56} height={56} className="w-full h-full object-cover" unoptimized />
           </div>
           <div>
             <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>{name || username}</p>
@@ -97,10 +192,9 @@ export default function SettingsPage() {
       )}
 
       <form onSubmit={handleSave} className="space-y-5">
+        {/* Basic info */}
         <div>
-          <label className="block text-sm mb-1.5 font-medium" style={{ color: 'var(--text)' }}>
-            Username
-          </label>
+          <label className="block text-sm mb-1.5 font-medium" style={{ color: 'var(--text)' }}>Username</label>
           <input
             type="text"
             value={username}
@@ -112,13 +206,11 @@ export default function SettingsPage() {
         </div>
 
         <div>
-          <label className="block text-sm mb-1.5 font-medium" style={{ color: 'var(--text)' }}>
-            Nombre
-          </label>
+          <label className="block text-sm mb-1.5 font-medium" style={{ color: 'var(--text)' }}>Nombre</label>
           <input
             type="text"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={e => setName(e.target.value)}
             className="w-full px-3 py-2 text-sm rounded border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
             style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
             placeholder="Tu nombre"
@@ -126,12 +218,10 @@ export default function SettingsPage() {
         </div>
 
         <div>
-          <label className="block text-sm mb-1.5 font-medium" style={{ color: 'var(--text)' }}>
-            Bio
-          </label>
+          <label className="block text-sm mb-1.5 font-medium" style={{ color: 'var(--text)' }}>Bio</label>
           <textarea
             value={bio}
-            onChange={(e) => setBio(e.target.value)}
+            onChange={e => setBio(e.target.value)}
             rows={3}
             maxLength={200}
             placeholder="Cuéntale a tus lectores quién eres..."
@@ -142,13 +232,11 @@ export default function SettingsPage() {
         </div>
 
         <div>
-          <label className="block text-sm mb-1.5 font-medium" style={{ color: 'var(--text)' }}>
-            URL del avatar
-          </label>
+          <label className="block text-sm mb-1.5 font-medium" style={{ color: 'var(--text)' }}>URL del avatar</label>
           <input
             type="url"
             value={avatarUrl}
-            onChange={(e) => setAvatarUrl(e.target.value)}
+            onChange={e => setAvatarUrl(e.target.value)}
             placeholder="https://..."
             className="w-full px-3 py-2 text-sm rounded border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
             style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
@@ -156,17 +244,51 @@ export default function SettingsPage() {
           <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>Usa una URL de imagen pública (ej: Gravatar, imgur).</p>
         </div>
 
-        {error && (
-          <p className="text-sm" style={{ color: '#e03e3e' }}>{error}</p>
-        )}
+        {/* Social links */}
+        <div className="pt-2">
+          <p className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>Redes sociales</p>
+          <p className="text-xs mb-4" style={{ color: 'var(--text-tertiary)' }}>
+            Aparecerán como iconos en tu perfil público.
+          </p>
+          <div className="space-y-3">
+            {NETWORKS.map(({ key, label, placeholder, prefix, icon }) => (
+              <div key={key} className="flex items-center gap-2">
+                <div
+                  className="w-8 h-8 flex items-center justify-center rounded flex-shrink-0"
+                  style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
+                >
+                  {icon}
+                </div>
+                <div className="flex-1 flex items-center rounded border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
+                  {prefix && (
+                    <span
+                      className="px-2 py-2 text-xs border-r flex-shrink-0 select-none"
+                      style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text-tertiary)' }}
+                    >
+                      {prefix}
+                    </span>
+                  )}
+                  <input
+                    type="text"
+                    value={social[key] ?? ''}
+                    onChange={e => setSocial(s => ({ ...s, [key]: e.target.value }))}
+                    placeholder={placeholder}
+                    className="flex-1 px-3 py-2 text-sm bg-transparent outline-none"
+                    style={{ color: 'var(--text)' }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         <button
           type="submit"
           disabled={saving}
-          className="text-sm font-medium px-5 py-2 rounded hover:opacity-90 disabled:opacity-50"
-          style={{ background: saved ? '#3a7a52' : 'var(--text)', color: 'var(--bg)' }}
+          className="text-sm font-medium px-5 py-2 rounded hover:opacity-90 disabled:opacity-50 transition-opacity"
+          style={{ background: 'var(--text)', color: 'var(--bg)' }}
         >
-          {saving ? 'Guardando...' : saved ? '✓ Guardado' : 'Guardar cambios'}
+          {saving ? 'Guardando...' : 'Guardar cambios'}
         </button>
       </form>
     </div>
