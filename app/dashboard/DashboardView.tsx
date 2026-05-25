@@ -22,16 +22,96 @@ interface Props {
   defaultTab: 'published' | 'draft'
 }
 
+type Tab = 'all' | 'published' | 'draft'
+type ViewMode = 'list' | 'grid'
+
 function extractCover(html: string): string | null {
   const m = html?.match(/<img[^>]+src="([^"]+)"/)
   return m ? m[1] : null
 }
 
-function StatCell({ value, label }: { value: string; label: string }) {
+function StatusBadge({ published }: { published: boolean }) {
   return (
-    <div className="text-center min-w-[64px]">
-      <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>{value}</p>
-      <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>{label}</p>
+    <span
+      className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium flex-shrink-0"
+      style={{
+        background: published ? 'rgba(52,168,83,0.10)' : 'rgba(251,188,4,0.12)',
+        color: published ? '#2d7a4f' : '#8a6500',
+      }}
+    >
+      <span
+        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+        style={{ background: published ? '#34a853' : '#fbbc04' }}
+      />
+      {published ? 'Publicado' : 'Borrador'}
+    </span>
+  )
+}
+
+function PostCard({ post, username }: { post: Post; username: string }) {
+  return (
+    <div
+      className="rounded border flex flex-col overflow-hidden transition-colors hover:bg-[var(--bg-hover)]"
+      style={{ borderColor: 'var(--border)' }}
+    >
+      <div className="p-4 flex flex-col gap-2.5 flex-1">
+        <Link
+          href={`/dashboard/edit/${post.id}`}
+          className="text-sm font-semibold leading-snug hover:underline line-clamp-2"
+          style={{ color: 'var(--text)' }}
+        >
+          {post.title}
+        </Link>
+
+        <div className="flex flex-wrap items-center gap-1">
+          <StatusBadge published={post.published} />
+          {post.tags?.slice(0, 2).map(tag => (
+            <span
+              key={tag}
+              className="text-xs px-1.5 py-0.5 rounded"
+              style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        {post.excerpt && (
+          <p className="text-xs leading-relaxed line-clamp-3" style={{ color: 'var(--text-secondary)' }}>
+            {post.excerpt}
+          </p>
+        )}
+      </div>
+
+      <div
+        className="px-4 py-2.5 flex items-center justify-between flex-shrink-0"
+        style={{ borderTop: '1px solid var(--border)' }}
+      >
+        <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+          {formatDateShort(post.created_at)}
+        </span>
+        <div className="flex items-center gap-1">
+          {post.published && (
+            <a
+              href={`/blog/${username}/${post.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-6 h-6 flex items-center justify-center rounded transition-colors hover:bg-[var(--bg-secondary)]"
+              style={{ color: 'var(--text-tertiary)' }}
+              onClick={e => e.stopPropagation()}
+              title="Ver post"
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+              </svg>
+            </a>
+          )}
+          <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+            {readingTime(post.content)} min
+          </span>
+        </div>
+      </div>
     </div>
   )
 }
@@ -44,7 +124,6 @@ function PostRow({ post, username, last }: { post: Post; username: string; last:
       className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-[var(--bg-hover)]"
       style={{ borderBottom: last ? 'none' : '1px solid var(--border)' }}
     >
-      {/* Thumbnail */}
       <div className="flex-shrink-0 w-16 h-12 rounded overflow-hidden" style={{ border: '1px solid var(--border)' }}>
         {cover ? (
           <img src={cover} alt="" className="w-full h-full object-cover" />
@@ -58,43 +137,35 @@ function PostRow({ post, username, last }: { post: Post; username: string; last:
         )}
       </div>
 
-      {/* Info */}
       <div className="flex-1 min-w-0">
-        <Link
-          href={`/dashboard/edit/${post.id}`}
-          className="text-sm font-medium leading-snug hover:underline block truncate"
-          style={{ color: 'var(--text)' }}
-        >
-          {post.title}
-        </Link>
-        <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+          <Link
+            href={`/dashboard/edit/${post.id}`}
+            className="text-sm font-medium leading-snug hover:underline truncate"
+            style={{ color: 'var(--text)' }}
+          >
+            {post.title}
+          </Link>
+          <StatusBadge published={post.published} />
+        </div>
+        <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
           {formatDateShort(post.created_at)} · {readingTime(post.content)} min
         </p>
-        <div className="flex items-center gap-3 mt-1.5">
-          <span className="flex items-center gap-1 text-xs" style={{ color: 'var(--text-tertiary)' }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
-            0
-          </span>
-          <span className="flex items-center gap-1 text-xs" style={{ color: 'var(--text-tertiary)' }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-            0
-          </span>
-        </div>
+        {post.tags && post.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            {post.tags.slice(0, 4).map(tag => (
+              <span
+                key={tag}
+                className="text-xs px-1.5 py-0.5 rounded"
+                style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Stats */}
-      <div className="hidden lg:flex items-center gap-2 divide-x" style={{ borderColor: 'var(--border)' }}>
-        <StatCell value="—" label="Visitas" />
-        <div className="pl-2">
-          <StatCell value={post.published ? 'Pub.' : 'Draft'} label="Estado" />
-        </div>
-      </div>
-
-      {/* Actions */}
       <div className="flex items-center gap-0.5 flex-shrink-0">
         {post.published && (
           <a
@@ -127,16 +198,24 @@ function PostRow({ post, username, last }: { post: Post; username: string; last:
 }
 
 export default function DashboardView({ posts, username, name, defaultTab }: Props) {
-  const [tab, setTab] = useState<'published' | 'draft'>(defaultTab)
+  const [tab, setTab] = useState<Tab>(defaultTab === 'draft' ? 'draft' : 'all')
+  const [view, setView] = useState<ViewMode>('list')
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<'newest' | 'oldest'>('newest')
+  const [tagFilter, setTagFilter] = useState<string | null>(null)
 
   const published = posts.filter(p => p.published)
   const drafts = posts.filter(p => !p.published)
-  const active = tab === 'published' ? published : drafts
+  const tabPosts = tab === 'all' ? posts : tab === 'published' ? published : drafts
+
+  const allTags = useMemo(() => {
+    const set = new Set<string>()
+    posts.forEach(p => p.tags?.forEach(t => set.add(t)))
+    return Array.from(set).sort()
+  }, [posts])
 
   const filtered = useMemo(() => {
-    let result = [...active]
+    let result = [...tabPosts]
     if (search.trim()) {
       const q = search.toLowerCase()
       result = result.filter(p =>
@@ -144,11 +223,13 @@ export default function DashboardView({ posts, username, name, defaultTab }: Pro
         (p.excerpt ?? '').toLowerCase().includes(q)
       )
     }
+    if (tagFilter) {
+      result = result.filter(p => p.tags?.includes(tagFilter))
+    }
     if (sort === 'oldest') result.reverse()
     return result
-  }, [active, search, sort])
+  }, [tabPosts, search, sort, tagFilter])
 
-  // Group by month
   const byMonth = useMemo(() => {
     const groups: Record<string, Post[]> = {}
     filtered.forEach(p => {
@@ -159,8 +240,9 @@ export default function DashboardView({ posts, username, name, defaultTab }: Pro
     return groups
   }, [filtered])
 
-  const tabBtn = (t: 'published' | 'draft', label: string, count: number) => (
+  const tabBtn = (t: Tab, label: string, count: number) => (
     <button
+      key={t}
       onClick={() => setTab(t)}
       className="px-3 py-1.5 rounded text-sm transition-colors"
       style={{
@@ -170,18 +252,38 @@ export default function DashboardView({ posts, username, name, defaultTab }: Pro
         boxShadow: tab === t ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
       }}
     >
-      {label} {count > 0 && <span className="ml-1 text-xs" style={{ color: 'var(--text-tertiary)' }}>{count}</span>}
+      {label}
+      {count > 0 && (
+        <span className="ml-1.5 text-xs" style={{ color: 'var(--text-tertiary)' }}>{count}</span>
+      )}
+    </button>
+  )
+
+  const viewBtn = (v: ViewMode, icon: React.ReactNode, title: string) => (
+    <button
+      onClick={() => setView(v)}
+      className="w-8 h-8 flex items-center justify-center transition-colors"
+      style={{
+        color: view === v ? 'var(--text)' : 'var(--text-tertiary)',
+        background: view === v ? 'var(--bg-secondary)' : 'transparent',
+      }}
+      title={title}
+    >
+      {icon}
     </button>
   )
 
   return (
     <div className="px-8 py-8 max-w-5xl">
-      {/* Page title */}
-      <h1 className="text-2xl font-bold mb-6" style={{ color: 'var(--text)' }}>Posts</h1>
+      <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--text)' }}>Posts</h1>
+      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
+        Organiza, planea y publica tu contenido.
+      </p>
 
-      {/* Tabs + Crear */}
+      {/* Tabs + view toggle + Crear */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-0.5 p-1 rounded" style={{ background: 'var(--bg-secondary)' }}>
+          {tabBtn('all', 'Todos', posts.length)}
           {tabBtn('published', 'Publicado', published.length)}
           <button
             disabled
@@ -194,20 +296,39 @@ export default function DashboardView({ posts, username, name, defaultTab }: Pro
           {tabBtn('draft', 'Borradores', drafts.length)}
         </div>
 
-        <Link
-          href="/dashboard/new"
-          className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded hover:opacity-90 transition-opacity"
-          style={{ background: 'var(--text)', color: 'var(--bg)' }}
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-          Crear
-        </Link>
+        <div className="flex items-center gap-2">
+          <div className="flex rounded border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
+            {viewBtn('list',
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+              </svg>,
+              'Vista lista'
+            )}
+            {viewBtn('grid',
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+              </svg>,
+              'Vista cuadrícula'
+            )}
+          </div>
+
+          <Link
+            href="/dashboard/new"
+            className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded hover:opacity-90 transition-opacity"
+            style={{ background: 'var(--text)', color: 'var(--bg)' }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Crear
+          </Link>
+        </div>
       </div>
 
       {/* Search + Sort */}
-      <div className="flex items-center gap-2 mb-6">
+      <div className="flex items-center gap-2 mb-4">
         <div
           className="flex-1 flex items-center gap-2 px-3 py-2 rounded border"
           style={{ borderColor: 'var(--border)', background: 'var(--bg)' }}
@@ -238,22 +359,54 @@ export default function DashboardView({ posts, username, name, defaultTab }: Pro
           className="text-sm px-3 py-2 rounded border outline-none cursor-pointer"
           style={{ borderColor: 'var(--border)', color: 'var(--text)', background: 'var(--bg)' }}
         >
-          <option value="newest">Primero los más nuevos</option>
-          <option value="oldest">Primero los más antiguos</option>
+          <option value="newest">Más recientes</option>
+          <option value="oldest">Más antiguos</option>
         </select>
       </div>
 
-      {/* Post list grouped by month */}
+      {/* Tag filter pills */}
+      {allTags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-6">
+          {allTags.map(tag => (
+            <button
+              key={tag}
+              onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
+              className="text-xs px-2.5 py-1 rounded-full border transition-colors"
+              style={{
+                borderColor: tagFilter === tag ? 'var(--text)' : 'var(--border)',
+                background: tagFilter === tag ? 'var(--text)' : 'transparent',
+                color: tagFilter === tag ? 'var(--bg)' : 'var(--text-secondary)',
+              }}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Content */}
       {filtered.length === 0 ? (
         <div className="text-center py-16 rounded border" style={{ borderColor: 'var(--border)', borderStyle: 'dashed' }}>
           <p className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
-            {search ? 'No se encontraron posts.' : tab === 'published' ? 'No tienes posts publicados.' : 'No tienes borradores.'}
+            {search || tagFilter
+              ? 'No se encontraron posts.'
+              : tab === 'published'
+              ? 'No tienes posts publicados.'
+              : tab === 'draft'
+              ? 'No tienes borradores.'
+              : 'Aún no has escrito ningún post.'}
           </p>
-          {!search && (
+          {!search && !tagFilter && (
             <Link href="/dashboard/new" className="text-sm hover:underline" style={{ color: 'var(--text)' }}>
               Crear el primero →
             </Link>
           )}
+        </div>
+      ) : view === 'grid' ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map(post => (
+            <PostCard key={post.id} post={post} username={username} />
+          ))}
         </div>
       ) : (
         Object.entries(byMonth).map(([month, monthPosts]) => (
