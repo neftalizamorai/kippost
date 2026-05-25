@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 import { toast } from 'sonner'
@@ -117,14 +117,18 @@ export default function SettingsPage() {
   const [social, setSocial] = useState<SocialLinks>({})
   const [template, setTemplate] = useState('minimal')
   const [templateConfig, setTemplateConfig] = useState<Record<string, Record<string, string>>>({})
+  const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [userId, setUserId] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const load = async () => {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
+      setUserId(user.id)
 
       const { data } = await supabase
         .from('profiles')
@@ -145,6 +149,39 @@ export default function SettingsPage() {
     }
     load()
   }, [])
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !userId) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Solo se permiten imágenes.')
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('La imagen no puede superar 2 MB.')
+      return
+    }
+
+    setUploading(true)
+    const ext = file.name.split('.').pop()
+    const path = `${userId}/avatar.${ext}`
+    const supabase = createClient()
+
+    const { error } = await supabase.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true })
+
+    if (error) {
+      toast.error(error.message)
+    } else {
+      const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+      // Cache-bust so the browser loads the new image
+      setAvatarUrl(`${data.publicUrl}?t=${Date.now()}`)
+      toast.success('Foto actualizada')
+    }
+    setUploading(false)
+  }
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -196,18 +233,58 @@ export default function SettingsPage() {
         <span className="font-mono text-xs" style={{ color: 'var(--text)' }}>/blog/{username}</span>
       </p>
 
-      {/* Avatar preview */}
-      {avatarUrl && (
-        <div className="mb-6 flex items-center gap-3">
-          <div className="w-14 h-14 rounded-full overflow-hidden border" style={{ borderColor: 'var(--border)' }}>
-            <Image src={avatarUrl} alt="Avatar" width={56} height={56} className="w-full h-full object-cover" unoptimized />
+      {/* Avatar uploader */}
+      <div className="mb-6 flex items-center gap-4">
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 group"
+          style={{ border: '1px solid var(--border)' }}
+          title="Cambiar foto"
+        >
+          {avatarUrl ? (
+            <Image src={avatarUrl} alt="Avatar" width={64} height={64} className="w-full h-full object-cover" unoptimized />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-lg font-semibold" style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}>
+              {name?.[0]?.toUpperCase() || username?.[0]?.toUpperCase() || '?'}
+            </div>
+          )}
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: 'rgba(0,0,0,0.45)' }}>
+            {uploading ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            )}
           </div>
-          <div>
-            <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>{name || username}</p>
-            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>@{username}</p>
-          </div>
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleAvatarUpload}
+        />
+        <div>
+          <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>{name || username}</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>@{username}</p>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="text-xs mt-1 hover:underline disabled:opacity-50"
+            style={{ color: 'var(--text-tertiary)' }}
+          >
+            {uploading ? 'Subiendo...' : 'Cambiar foto'}
+          </button>
         </div>
-      )}
+      </div>
 
       <form onSubmit={handleSave} className="space-y-5">
         {/* Basic info */}
@@ -247,19 +324,6 @@ export default function SettingsPage() {
             style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
           />
           <p className="text-xs mt-1 text-right" style={{ color: 'var(--text-tertiary)' }}>{bio.length}/200</p>
-        </div>
-
-        <div>
-          <label className="block text-sm mb-1.5 font-medium" style={{ color: 'var(--text)' }}>URL del avatar</label>
-          <input
-            type="url"
-            value={avatarUrl}
-            onChange={e => setAvatarUrl(e.target.value)}
-            placeholder="https://..."
-            className="w-full px-3 py-2 text-sm rounded border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
-            style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-          />
-          <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>Usa una URL de imagen pública (ej: Gravatar, imgur).</p>
         </div>
 
         {/* Social links */}
