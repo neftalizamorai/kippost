@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { slugify, generateExcerpt } from '@/lib/utils'
 import Link from 'next/link'
 import { RichTextEditor } from '@/components/RichTextEditor'
+import TagInput from '@/components/TagInput'
 import { toast } from 'sonner'
 
 const DRAFT_KEY = 'kippost:new-draft'
@@ -14,7 +15,7 @@ export default function NewPostPage() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [excerpt, setExcerpt] = useState('')
-  const [tagsInput, setTagsInput] = useState('')
+  const [tags, setTags] = useState<string[]>([])
   const [published, setPublished] = useState(false)
   const [saving, setSaving] = useState(false)
   const [initialized, setInitialized] = useState(false)
@@ -33,7 +34,7 @@ export default function NewPostPage() {
           setDraftContent(draft.content || '')
           setContent(draft.content || '')
           setExcerpt(draft.excerpt || '')
-          setTagsInput(draft.tags || '')
+          setTags(draft.tags || [])
         }
       }
     } catch {}
@@ -48,12 +49,12 @@ export default function NewPostPage() {
     clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
       try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, content, excerpt, tags: tagsInput }))
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, content, excerpt, tags }))
       } catch {}
     }, 2000)
 
     return () => clearTimeout(saveTimerRef.current)
-  }, [title, content, excerpt, tagsInput, initialized])
+  }, [title, content, excerpt, tags, initialized])
 
   const handleSave = async () => {
     if (!title.trim()) { toast.error('El título es obligatorio.'); return }
@@ -63,7 +64,6 @@ export default function NewPostPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
-    const tags = tagsInput.split(',').map(t => t.trim()).filter(Boolean)
     const slug = slugify(title)
     const plainText = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
     const finalExcerpt = excerpt.trim() || generateExcerpt(plainText)
@@ -150,15 +150,10 @@ export default function NewPostPage() {
           <label className="block text-xs font-medium uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
             Etiquetas
           </label>
-          <input
-            type="text"
-            value={tagsInput}
-            onChange={e => setTagsInput(e.target.value)}
-            placeholder="javascript, web, tutorial"
-            className="w-full px-3 py-2 text-sm rounded border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
-            style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-          />
-          <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>Separadas por coma</p>
+          <TagInput tags={tags} onChange={setTags} />
+          <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+            Escribe y presiona Enter o coma para añadir
+          </p>
         </div>
       </div>
     </div>

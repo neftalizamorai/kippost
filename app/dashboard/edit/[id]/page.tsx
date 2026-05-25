@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { generateExcerpt } from '@/lib/utils'
 import Link from 'next/link'
 import { RichTextEditor } from '@/components/RichTextEditor'
+import TagInput from '@/components/TagInput'
 import { toast } from 'sonner'
 
 interface Post {
@@ -28,7 +29,7 @@ export default function EditPostPage() {
   const [content, setContent] = useState('')
   const [initialHtml, setInitialHtml] = useState<string | null>(null)
   const [excerpt, setExcerpt] = useState('')
-  const [tagsInput, setTagsInput] = useState('')
+  const [tags, setTags] = useState<string[]>([])
   const [published, setPublished] = useState(false)
   const [pinned, setPinned] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -51,7 +52,7 @@ export default function EditPostPage() {
         setPost(data)
         setTitle(data.title)
         setExcerpt(data.excerpt || '')
-        setTagsInput(data.tags?.join(', ') || '')
+        setTags(data.tags ?? [])
         setPublished(data.published)
         setPinned(data.pinned ?? false)
 
@@ -75,7 +76,7 @@ export default function EditPostPage() {
     setError(null)
 
     const supabase = createClient()
-    const tags = tagsInput.split(',').map(t => t.trim()).filter(Boolean)
+    const cleanTags = tags.filter(Boolean)
     const plainText = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
     const finalExcerpt = excerpt.trim() || generateExcerpt(plainText)
 
@@ -85,7 +86,7 @@ export default function EditPostPage() {
         title: title.trim(),
         content,
         excerpt: finalExcerpt,
-        tags,
+        tags: cleanTags,
         published,
         pinned,
         updated_at: new Date().toISOString(),
@@ -220,15 +221,8 @@ export default function EditPostPage() {
           <label className="block text-xs font-medium uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
             Etiquetas
           </label>
-          <input
-            type="text"
-            value={tagsInput}
-            onChange={e => setTagsInput(e.target.value)}
-            placeholder="javascript, web, tutorial"
-            className="w-full px-3 py-2 text-sm rounded border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
-            style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-          />
-          <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>Separadas por coma</p>
+          <TagInput tags={tags} onChange={setTags} />
+          <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>Escribe y presiona Enter o coma para añadir</p>
         </div>
       </div>
     </div>
