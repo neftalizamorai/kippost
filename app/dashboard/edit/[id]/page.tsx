@@ -106,7 +106,12 @@ export default function EditPostPage() {
     if (!confirm('¿Eliminar este post? Esta acción no se puede deshacer.')) return
     setDeleting(true)
     const supabase = createClient()
-    await supabase.from('posts').delete().eq('id', postId)
+    const { error } = await supabase.from('posts').delete().eq('id', postId)
+    if (error) {
+      toast.error(error.message)
+      setDeleting(false)
+      return
+    }
     router.push('/dashboard')
   }
 

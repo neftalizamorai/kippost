@@ -218,7 +218,9 @@ function PostRow({ post, username, last }: { post: Post; username: string; last:
 }
 
 export default function DashboardView({ posts, username, name, defaultTab }: Props) {
-  const [tab, setTab] = useState<Tab>(defaultTab === 'draft' ? 'draft' : 'all')
+  const [tab, setTab] = useState<Tab>(
+    defaultTab === 'draft' ? 'draft' : defaultTab === 'published' ? 'published' : 'all'
+  )
   const [view, setView] = useState<ViewMode>('list')
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<'newest' | 'oldest'>('newest')

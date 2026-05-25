@@ -66,7 +66,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: post.title,
       description: post.excerpt || undefined,
       type: 'article',
-      authors: [profile.name],
+      authors: profile.name ? [profile.name] : undefined,
       siteName: 'KipPost',
     },
     twitter: {

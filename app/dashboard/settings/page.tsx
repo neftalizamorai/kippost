@@ -136,7 +136,7 @@ export default function SettingsPage() {
 
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) { setSaving(false); toast.error('Sesión expirada, vuelve a iniciar sesión.'); return }
 
     const cleanSocial: SocialLinks = {}
     for (const { key } of NETWORKS) {

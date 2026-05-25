@@ -7,18 +7,25 @@ import type { Metadata } from 'next'
 
 type SocialLinks = Record<string, string>
 
+const SOCIAL_PREFIXES: Record<string, string> = {
+  twitter: 'https://twitter.com/',
+  instagram: 'https://instagram.com/',
+  linkedin: 'https://linkedin.com/in/',
+  github: 'https://github.com/',
+  tiktok: 'https://tiktok.com/@',
+  youtube: 'https://youtube.com/@',
+}
+
 function socialUrl(key: string, value: string): string {
   if (!value) return ''
-  if (value.startsWith('http')) return value
-  const prefixes: Record<string, string> = {
-    twitter: 'https://twitter.com/',
-    instagram: 'https://instagram.com/',
-    linkedin: 'https://linkedin.com/in/',
-    github: 'https://github.com/',
-    tiktok: 'https://tiktok.com/@',
-    youtube: 'https://youtube.com/@',
+  if (value.startsWith('https://') || value.startsWith('http://')) {
+    // Only allow http/https — block javascript:, data:, etc.
+    return value
   }
-  return (prefixes[key] ?? '') + value
+  const prefix = SOCIAL_PREFIXES[key]
+  // Unknown keys with no prefix and no full URL are unsafe to render as hrefs
+  if (!prefix) return ''
+  return prefix + value
 }
 
 const SOCIAL_ICONS: Record<string, React.ReactNode> = {
