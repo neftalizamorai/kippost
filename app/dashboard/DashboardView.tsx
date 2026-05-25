@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { formatDateShort, formatMonth, readingTime } from '@/lib/utils'
 
 interface Post {
@@ -217,10 +218,18 @@ function PostRow({ post, username, last }: { post: Post; username: string; last:
   )
 }
 
-export default function DashboardView({ posts, username, name, defaultTab }: Props) {
-  const [tab, setTab] = useState<Tab>(
-    defaultTab === 'draft' ? 'draft' : defaultTab === 'published' ? 'published' : 'all'
-  )
+export default function DashboardView({ posts, username, name }: Omit<Props, 'defaultTab'>) {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const rawTab = searchParams.get('tab')
+  const tab: Tab = rawTab === 'draft' ? 'draft' : rawTab === 'published' ? 'published' : 'all'
+
+  const setTab = (t: Tab) => {
+    const p = new URLSearchParams()
+    if (t !== 'all') p.set('tab', t)
+    router.push(`/dashboard${p.toString() ? `?${p.toString()}` : ''}`, { scroll: false })
+  }
+
   const [view, setView] = useState<ViewMode>('list')
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<'newest' | 'oldest'>('newest')

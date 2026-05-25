@@ -1,13 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import DashboardView from './DashboardView'
+import { Suspense } from 'react'
 
 export const metadata = { title: 'Dashboard' }
 
-interface Props {
-  searchParams: { tab?: string }
-}
-
-export default async function DashboardPage({ searchParams }: Props) {
+export default async function DashboardPage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -20,14 +17,13 @@ export default async function DashboardPage({ searchParams }: Props) {
       .order('created_at', { ascending: false }),
   ])
 
-  const defaultTab = searchParams.tab === 'draft' ? 'draft' : 'published'
-
   return (
-    <DashboardView
-      posts={posts ?? []}
-      username={profile?.username ?? ''}
-      name={profile?.name ?? ''}
-      defaultTab={defaultTab}
-    />
+    <Suspense>
+      <DashboardView
+        posts={posts ?? []}
+        username={profile?.username ?? ''}
+        name={profile?.name ?? ''}
+      />
+    </Suspense>
   )
 }
