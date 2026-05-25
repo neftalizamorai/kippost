@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import BlogView from './BlogView'
 import BlogHeroView from './BlogHeroView'
+import type { HeroConfig } from './BlogHeroView'
+import type { MinimalConfig } from './BlogView'
 import type { Metadata } from 'next'
 
 type SocialLinks = Record<string, string>
@@ -130,7 +132,7 @@ export default async function BlogPage({ params }: Props) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, username, name, bio, avatar_url, social_links, template')
+    .select('id, username, name, bio, avatar_url, social_links, template, template_config')
     .eq('username', params.username)
     .single()
 
@@ -203,7 +205,11 @@ export default async function BlogPage({ params }: Props) {
       </div>
 
       {profile.template === 'hero' ? (
-        <BlogHeroView profile={profile} posts={posts ?? []} />
+        <BlogHeroView
+          profile={profile}
+          posts={posts ?? []}
+          config={(profile.template_config as { hero?: HeroConfig })?.hero}
+        />
       ) : (
         <div className="max-w-2xl mx-auto px-6 py-12">
           {/* Minimal header */}
@@ -240,7 +246,11 @@ export default async function BlogPage({ params }: Props) {
               </div>
             </div>
           </header>
-          <BlogView profile={profile} posts={posts ?? []} />
+          <BlogView
+            profile={profile}
+            posts={posts ?? []}
+            config={(profile.template_config as { minimal?: MinimalConfig })?.minimal}
+          />
         </div>
       )}
     </div>

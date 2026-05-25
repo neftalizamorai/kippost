@@ -18,12 +18,20 @@ interface Profile {
   avatar_url: string | null
 }
 
+export interface HeroConfig {
+  greeting?: string
+  articlesTitle?: string
+}
+
 interface Props {
   profile: Profile
   posts: Post[]
+  config?: HeroConfig
 }
 
-export default function BlogHeroView({ profile, posts }: Props) {
+export default function BlogHeroView({ profile, posts, config = {} }: Props) {
+  const greeting = config.greeting ?? "Hey, I'm"
+  const articlesTitle = config.articlesTitle ?? 'My Latest Articles'
   return (
     <div className="max-w-2xl mx-auto px-6 py-16">
       {/* Avatar with ring */}
@@ -52,7 +60,7 @@ export default function BlogHeroView({ profile, posts }: Props) {
 
       {/* Greeting */}
       <h1 className="text-4xl font-bold leading-tight mb-8" style={{ color: 'var(--text)' }}>
-        Hey, I&apos;m {profile.name || profile.username}
+        {greeting} {profile.name || profile.username}
       </h1>
 
       {/* Bio blockquote */}
@@ -70,7 +78,7 @@ export default function BlogHeroView({ profile, posts }: Props) {
 
       {/* Articles */}
       <h2 className="text-xl font-bold mb-6" style={{ color: 'var(--text)' }}>
-        My Latest Articles
+        {articlesTitle}
       </h2>
 
       {posts.length === 0 ? (

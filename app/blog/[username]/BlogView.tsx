@@ -21,14 +21,24 @@ interface Profile {
   avatar_url: string | null
 }
 
+export interface MinimalConfig {
+  tabHome?: string
+  tabArchive?: string
+  tabAbout?: string
+}
+
 interface Props {
   profile: Profile
   posts: Post[]
+  config?: MinimalConfig
 }
 
 type Tab = 'home' | 'archive' | 'about'
 
-export default function BlogView({ profile, posts }: Props) {
+export default function BlogView({ profile, posts, config = {} }: Props) {
+  const tabHome = config.tabHome ?? 'Inicio'
+  const tabArchive = config.tabArchive ?? 'Archivo'
+  const tabAbout = config.tabAbout ?? 'Sobre mí'
   const [activeTab, setActiveTab] = useState<Tab>('home')
 
   // Group posts by month for archive
@@ -57,7 +67,7 @@ export default function BlogView({ profile, posts }: Props) {
               marginBottom: '-1px',
             }}
           >
-            {tab === 'home' ? 'Inicio' : tab === 'archive' ? 'Archivo' : 'Sobre mí'}
+            {tab === 'home' ? tabHome : tab === 'archive' ? tabArchive : tabAbout}
           </button>
         ))}
       </div>
