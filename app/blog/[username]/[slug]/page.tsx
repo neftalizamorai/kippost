@@ -119,7 +119,6 @@ export default async function PostPage({ params }: Props) {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
-      {/* Reading progress */}
       <ReadingProgress />
 
       {/* Topbar */}
@@ -142,31 +141,28 @@ export default async function PostPage({ params }: Props) {
           </svg>
           <span className="hidden sm:inline">{profile.name}</span>
         </Link>
-
         <div className="flex items-center gap-2">
           <ShareButton />
           <ThemeToggle />
         </div>
       </header>
 
+      {/* Full-bleed cover */}
+      {post.cover_image_url && (
+        <div className="w-full overflow-hidden" style={{ height: '360px' }}>
+          <img
+            src={post.cover_image_url}
+            alt={post.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+
       {/* Content */}
       <div className="max-w-5xl mx-auto px-6 py-12">
         <div className="flex gap-16">
           {/* Article */}
           <article className="flex-1 min-w-0 max-w-2xl">
-            {/* Cover image */}
-            {post.cover_image_url && (
-              <div className="mb-8 rounded overflow-hidden" style={{ maxHeight: '360px' }}>
-                <img
-                  src={post.cover_image_url}
-                  alt={post.title}
-                  className="w-full object-cover"
-                  style={{ maxHeight: '360px' }}
-                />
-              </div>
-            )}
-
-            {/* Meta */}
             <div className="flex items-center gap-2 mb-5 text-xs" style={{ color: 'var(--text-tertiary)' }}>
               <time>{formatDate(post.created_at)}</time>
               <span>·</span>
