@@ -10,6 +10,7 @@ interface Post {
   excerpt: string | null
   content: string
   published: boolean
+  pinned: boolean
   created_at: string
   slug: string
   tags: string[] | null
@@ -65,6 +66,18 @@ function PostCard({ post, username }: { post: Post; username: string }) {
 
         <div className="flex flex-wrap items-center gap-1">
           <StatusBadge published={post.published} />
+          {post.pinned && (
+            <span
+              className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded"
+              style={{ background: 'var(--bg-secondary)', color: 'var(--text-tertiary)' }}
+              title="Anclado en navegación"
+            >
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/>
+              </svg>
+              Nav
+            </span>
+          )}
           {post.tags?.slice(0, 2).map(tag => (
             <span
               key={tag}
@@ -147,6 +160,13 @@ function PostRow({ post, username, last }: { post: Post; username: string; last:
             {post.title}
           </Link>
           <StatusBadge published={post.published} />
+          {post.pinned && (
+            <span title="Anclado en navegación">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="0" style={{ color: 'var(--text-tertiary)' }}>
+                <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/>
+              </svg>
+            </span>
+          )}
         </div>
         <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
           {formatDateShort(post.created_at)} · {readingTime(post.content)} min

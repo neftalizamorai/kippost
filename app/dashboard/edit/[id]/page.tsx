@@ -15,6 +15,7 @@ interface Post {
   excerpt: string
   tags: string[]
   published: boolean
+  pinned: boolean
   slug: string
 }
 
@@ -29,6 +30,7 @@ export default function EditPostPage() {
   const [excerpt, setExcerpt] = useState('')
   const [tagsInput, setTagsInput] = useState('')
   const [published, setPublished] = useState(false)
+  const [pinned, setPinned] = useState(false)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -51,6 +53,7 @@ export default function EditPostPage() {
         setExcerpt(data.excerpt || '')
         setTagsInput(data.tags?.join(', ') || '')
         setPublished(data.published)
+        setPinned(data.pinned ?? false)
 
         // Convert Markdown to HTML for old posts
         let html = data.content || ''
@@ -84,6 +87,7 @@ export default function EditPostPage() {
         excerpt: finalExcerpt,
         tags,
         published,
+        pinned,
         updated_at: new Date().toISOString(),
       })
       .eq('id', postId)
@@ -137,6 +141,17 @@ export default function EditPostPage() {
           <label className="flex items-center gap-1.5 text-sm cursor-pointer select-none" style={{ color: 'var(--text-secondary)' }}>
             <input type="checkbox" checked={published} onChange={e => setPublished(e.target.checked)} className="rounded" />
             Publicado
+          </label>
+          <label
+            className="flex items-center gap-1.5 text-sm cursor-pointer select-none"
+            style={{ color: pinned ? 'var(--text)' : 'var(--text-secondary)' }}
+            title="Aparece como enlace en la barra de navegación del blog"
+          >
+            <input type="checkbox" checked={pinned} onChange={e => setPinned(e.target.checked)} className="rounded" />
+            <svg width="12" height="12" viewBox="0 0 24 24" fill={pinned ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/>
+            </svg>
+            Anclar en nav
           </label>
           <button
             onClick={handleSave}

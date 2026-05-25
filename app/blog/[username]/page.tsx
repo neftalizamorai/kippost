@@ -128,12 +128,21 @@ export default async function BlogPage({ params }: Props) {
 
   if (!profile) notFound()
 
-  const { data: posts } = await supabase
-    .from('posts')
-    .select('id, title, excerpt, content, tags, created_at, slug')
-    .eq('user_id', profile.id)
-    .eq('published', true)
-    .order('created_at', { ascending: false })
+  const [{ data: posts }, { data: pinnedPosts }] = await Promise.all([
+    supabase
+      .from('posts')
+      .select('id, title, excerpt, content, tags, created_at, slug')
+      .eq('user_id', profile.id)
+      .eq('published', true)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('posts')
+      .select('title, slug')
+      .eq('user_id', profile.id)
+      .eq('published', true)
+      .eq('pinned', true)
+      .order('created_at', { ascending: true }),
+  ])
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
@@ -146,9 +155,28 @@ export default async function BlogPage({ params }: Props) {
           backdropFilter: 'blur(8px)',
         }}
       >
-        <Link href="/" className="text-sm font-semibold tracking-tight transition-opacity hover:opacity-70" style={{ color: 'var(--text)' }}>
-          KipPost
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/" className="text-sm font-semibold tracking-tight transition-opacity hover:opacity-70" style={{ color: 'var(--text)' }}>
+            KipPost
+          </Link>
+          {pinnedPosts && pinnedPosts.length > 0 && (
+            <>
+              <span style={{ color: 'var(--border)' }}>|</span>
+              <nav className="flex items-center gap-3">
+                {pinnedPosts.map(p => (
+                  <Link
+                    key={p.slug}
+                    href={`/blog/${params.username}/${p.slug}`}
+                    className="text-sm transition-opacity hover:opacity-70"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
+                    {p.title}
+                  </Link>
+                ))}
+              </nav>
+            </>
+          )}
+        </div>
         <div className="flex items-center gap-1">
           <a
             href={`/blog/${params.username}/rss`}

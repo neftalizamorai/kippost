@@ -15,7 +15,7 @@ export default async function DashboardPage({ searchParams }: Props) {
     supabase.from('profiles').select('username, name').eq('id', user!.id).single(),
     supabase
       .from('posts')
-      .select('id, title, excerpt, content, published, created_at, slug, tags')
+      .select('id, title, excerpt, content, published, pinned, created_at, slug, tags')
       .eq('user_id', user!.id)
       .order('created_at', { ascending: false }),
   ])
