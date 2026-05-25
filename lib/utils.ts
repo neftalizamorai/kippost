@@ -34,17 +34,15 @@ export function formatMonth(dateString: string): string {
 }
 
 export function readingTime(content: string): number {
-  const words = content.trim().split(/\s+/).length
+  const text = content.replace(/<[^>]*>/g, ' ')
+  const words = text.trim().split(/\s+/).filter(Boolean).length
   return Math.max(1, Math.ceil(words / 200))
 }
 
 export function generateExcerpt(content: string, maxLength = 160): string {
   const text = content
-    .replace(/#{1,6}\s+/g, '')
-    .replace(/\*{1,2}([^*]+)\*{1,2}/g, '$1')
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-    .replace(/`{1,3}[^`]*`{1,3}/g, '')
-    .replace(/\n+/g, ' ')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim()
 
   if (text.length <= maxLength) return text

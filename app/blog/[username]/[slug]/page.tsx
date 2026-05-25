@@ -3,11 +3,39 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { formatDate, readingTime, addHeadingIds, extractHeadings } from '@/lib/utils'
 import { marked } from 'marked'
+import sanitizeHtml from 'sanitize-html'
 import { ReadingProgress } from '@/components/ReadingProgress'
 import { TableOfContents } from '@/components/TableOfContents'
 import { ShareButton } from '@/components/ShareButton'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import type { Metadata } from 'next'
+
+const ALLOWED_HTML: sanitizeHtml.IOptions = {
+  allowedTags: [
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'p', 'br', 'hr',
+    'ul', 'ol', 'li',
+    'strong', 'em', 's', 'u',
+    'code', 'pre',
+    'blockquote',
+    'a', 'img',
+    'table', 'thead', 'tbody', 'tr', 'th', 'td',
+  ],
+  allowedAttributes: {
+    '*': ['id', 'class'],
+    'a': ['href', 'rel', 'target'],
+    'img': ['src', 'alt', 'title'],
+    'td': ['colspan', 'rowspan'],
+    'th': ['colspan', 'rowspan'],
+  },
+  allowedSchemes: ['http', 'https', 'mailto'],
+  transformTags: {
+    'a': (tagName, attribs) => ({
+      tagName,
+      attribs: { ...attribs, rel: 'noopener noreferrer' },
+    }),
+  },
+}
 
 interface Props {
   params: { username: string; slug: string }
@@ -31,7 +59,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .single()
 
   if (!post) return {}
-  return { title: post.title, description: post.excerpt || undefined }
+  return {
+    title: post.title,
+    description: post.excerpt || undefined,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt || undefined,
+      type: 'article',
+      authors: [profile.name],
+      siteName: 'KipPost',
+    },
+    twitter: {
+      card: 'summary',
+      title: post.title,
+      description: post.excerpt || undefined,
+    },
+  }
 }
 
 export default async function PostPage({ params }: Props) {
@@ -67,11 +110,10 @@ export default async function PostPage({ params }: Props) {
   const prevPost = idx > 0 ? allPosts![idx - 1] : null
   const nextPost = idx >= 0 && idx < (allPosts?.length ?? 0) - 1 ? allPosts![idx + 1] : null
 
-  // Support both HTML (new posts) and Markdown (legacy posts)
   const rawHtml = post.content?.trimStart().startsWith('<')
     ? post.content
     : marked.parse(post.content || '') as string
-  const html = addHeadingIds(rawHtml)
+  const html = addHeadingIds(sanitizeHtml(rawHtml, ALLOWED_HTML))
   const headings = extractHeadings(html)
   const mins = readingTime(post.content || '')
 

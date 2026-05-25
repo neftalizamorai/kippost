@@ -17,11 +17,13 @@
     "@tiptap/extension-placeholder": "^3.23.6",
     "@tiptap/react": "^3.23.6",
     "@tiptap/starter-kit": "^3.23.6",
+    "@types/sanitize-html": "^2.16.1",
     "marked": "^9.1.6",
     "next": "14.2.5",
     "next-themes": "^0.3.0",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "sanitize-html": "^2.17.4"
   },
   "devDependencies": {
     "@types/node": "^20",
