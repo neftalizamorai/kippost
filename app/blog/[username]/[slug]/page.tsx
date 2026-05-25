@@ -194,6 +194,9 @@ export default async function PostPage({ params }: Props) {
               dangerouslySetInnerHTML={{ __html: html }}
             />
 
+            {/* Share */}
+            <ShareButton compact={false} title={post.title} />
+
             {/* Author footer */}
             <div
               className="mt-16 pt-8 flex items-center gap-4"
