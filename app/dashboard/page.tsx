@@ -17,12 +17,24 @@ export default async function DashboardPage() {
       .order('created_at', { ascending: false }),
   ])
 
+  const postIds = posts?.map(p => p.id) ?? []
+  const { data: viewCounts } = postIds.length > 0
+    ? await supabase.from('post_views').select('post_id').in('post_id', postIds)
+    : { data: [] }
+
+  // Build a map of post_id -> count
+  const viewMap: Record<string, number> = {}
+  viewCounts?.forEach(v => {
+    viewMap[v.post_id] = (viewMap[v.post_id] ?? 0) + 1
+  })
+
   return (
     <Suspense>
       <DashboardView
         posts={posts ?? []}
         username={profile?.username ?? ''}
         name={profile?.name ?? ''}
+        viewMap={viewMap}
       />
     </Suspense>
   )

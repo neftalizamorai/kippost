@@ -23,6 +23,7 @@ interface Props {
   username: string
   name: string
   defaultTab: 'published' | 'draft'
+  viewMap?: Record<string, number>
 }
 
 type Tab = 'all' | 'published' | 'draft'
@@ -51,7 +52,7 @@ function StatusBadge({ published }: { published: boolean }) {
   )
 }
 
-function PostCard({ post, username }: { post: Post; username: string }) {
+function PostCard({ post, username, views }: { post: Post; username: string; views?: number }) {
   return (
     <div
       className="rounded border flex flex-col overflow-hidden transition-colors hover:bg-[var(--bg-hover)]"
@@ -130,13 +131,18 @@ function PostCard({ post, username }: { post: Post; username: string }) {
           <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
             {readingTime(post.content)} min
           </span>
+          {(views ?? 0) > 0 && (
+            <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+              · {views} vis.
+            </span>
+          )}
         </div>
       </div>
     </div>
   )
 }
 
-function PostRow({ post, username, last }: { post: Post; username: string; last: boolean }) {
+function PostRow({ post, username, last, views }: { post: Post; username: string; last: boolean; views?: number }) {
   const cover = post.cover_image_url ?? extractCover(post.content)
 
   return (
@@ -177,6 +183,11 @@ function PostRow({ post, username, last }: { post: Post; username: string; last:
         </div>
         <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
           {formatDateShort(post.created_at)} · {readingTime(post.content)} min
+          {(views ?? 0) > 0 && (
+            <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+              {' '}· {views} vis.
+            </span>
+          )}
         </p>
         {post.tags && post.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-1.5">
@@ -224,7 +235,7 @@ function PostRow({ post, username, last }: { post: Post; username: string; last:
   )
 }
 
-export default function DashboardView({ posts, username, name }: Omit<Props, 'defaultTab'>) {
+export default function DashboardView({ posts, username, name, viewMap }: Omit<Props, 'defaultTab'>) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const rawTab = searchParams.get('tab')
@@ -440,7 +451,7 @@ export default function DashboardView({ posts, username, name }: Omit<Props, 'de
       ) : view === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(post => (
-            <PostCard key={post.id} post={post} username={username} />
+            <PostCard key={post.id} post={post} username={username} views={viewMap?.[post.id]} />
           ))}
         </div>
       ) : (
@@ -459,6 +470,7 @@ export default function DashboardView({ posts, username, name }: Omit<Props, 'de
                   post={post}
                   username={username}
                   last={i === monthPosts.length - 1}
+                  views={viewMap?.[post.id]}
                 />
               ))}
             </div>

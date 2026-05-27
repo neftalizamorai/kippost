@@ -53,7 +53,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const { data: post } = await supabase
     .from('posts')
-    .select('title, excerpt')
+    .select('title, excerpt, cover_image_url')
     .eq('user_id', profile.id)
     .eq('slug', params.slug)
     .eq('published', true)
@@ -63,17 +63,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: post.title,
     description: post.excerpt || undefined,
+    alternates: {
+      types: {
+        'application/rss+xml': `/blog/${params.username}/rss`,
+      },
+    },
     openGraph: {
       title: post.title,
       description: post.excerpt || undefined,
       type: 'article',
       authors: profile.name ? [profile.name] : undefined,
       siteName: 'KipPost',
+      ...(post.cover_image_url ? { images: [{ url: post.cover_image_url }] } : {}),
     },
     twitter: {
       card: 'summary',
       title: post.title,
       description: post.excerpt || undefined,
+      ...(post.cover_image_url ? { images: [post.cover_image_url] } : {}),
     },
   }
 }
@@ -98,6 +105,9 @@ export default async function PostPage({ params }: Props) {
     .single()
 
   if (!post) notFound()
+
+  // Track view (fire-and-forget, don't block render)
+  supabase.from('post_views').insert({ post_id: post.id }).then(() => {})
 
   // Get prev/next
   const { data: allPosts } = await supabase

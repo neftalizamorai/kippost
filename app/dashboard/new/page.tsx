@@ -8,6 +8,7 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import TagInput from '@/components/TagInput'
 import { toast } from 'sonner'
+import { useFocusMode } from '@/contexts/FocusContext'
 
 const BlockNoteEditor = dynamic(() => import('@/components/BlockNoteEditor'), { ssr: false })
 
@@ -24,9 +25,13 @@ export default function NewPostPage() {
   const [initialContent, setInitialContent] = useState<string | null>(null)
   const [coverImageUrl, setCoverImageUrl] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>()
+  const autoSaveRef = useRef<ReturnType<typeof setInterval>>()
+  const draftIdRef = useRef<string | null>(null)
   const titleRef = useRef<HTMLTextAreaElement>(null)
   const router = useRouter()
+  const { focusMode, toggleFocusMode } = useFocusMode()
 
   useEffect(() => {
     try {
@@ -67,6 +72,45 @@ export default function NewPostPage() {
     return () => clearTimeout(saveTimerRef.current)
   }, [title, content, excerpt, tags, coverImageUrl, initialized])
 
+  useEffect(() => {
+    autoSaveRef.current = setInterval(async () => {
+      if (!title.trim() || !initialized) return
+      setAutoSaveStatus('saving')
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const plainText = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+      const finalExcerpt = excerpt.trim() || generateExcerpt(plainText)
+
+      if (draftIdRef.current) {
+        await supabase.from('posts').update({
+          title: title.trim(), content, excerpt: finalExcerpt,
+          tags: tags.filter(Boolean), cover_image_url: coverImageUrl || null,
+          updated_at: new Date().toISOString(),
+        }).eq('id', draftIdRef.current)
+      } else {
+        const { data } = await supabase.from('posts').insert({
+          user_id: user.id, title: title.trim(), content,
+          excerpt: finalExcerpt, tags: tags.filter(Boolean),
+          published: false, slug: slugify(title) + '-' + Date.now().toString(36),
+          cover_image_url: coverImageUrl || null,
+        }).select('id').single()
+        if (data) draftIdRef.current = data.id
+      }
+      setAutoSaveStatus('saved')
+      setTimeout(() => setAutoSaveStatus('idle'), 3000)
+    }, 30000)
+    return () => clearInterval(autoSaveRef.current)
+  }, [title, content, excerpt, tags, coverImageUrl, initialized])
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && focusMode) toggleFocusMode()
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [focusMode, toggleFocusMode])
+
   const handleSave = async () => {
     if (!title.trim()) { toast.error('El título es obligatorio.'); return }
     setSaving(true)
@@ -76,13 +120,23 @@ export default function NewPostPage() {
     const slug = slugify(title)
     const plainText = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
     const finalExcerpt = excerpt.trim() || generateExcerpt(plainText)
-    const payload = { user_id: user.id, title: title.trim(), content, excerpt: finalExcerpt, tags, published, slug, cover_image_url: coverImageUrl || null }
-    const { error: err } = await supabase.from('posts').insert(payload)
-    if (err?.code === '23505') {
-      const { error: retryErr } = await supabase.from('posts').insert({ ...payload, slug: `${slug}-${Date.now().toString(36)}` })
-      if (retryErr) { toast.error(retryErr.message); setSaving(false); return }
-    } else if (err) {
-      toast.error(err.message); setSaving(false); return
+    if (draftIdRef.current) {
+      const { error: err } = await supabase.from('posts').update({
+        title: title.trim(), content, excerpt: finalExcerpt,
+        tags: tags.filter(Boolean), published, slug,
+        cover_image_url: coverImageUrl || null,
+        updated_at: new Date().toISOString(),
+      }).eq('id', draftIdRef.current)
+      if (err) { toast.error(err.message); setSaving(false); return }
+    } else {
+      const payload = { user_id: user.id, title: title.trim(), content, excerpt: finalExcerpt, tags, published, slug, cover_image_url: coverImageUrl || null }
+      const { error: err } = await supabase.from('posts').insert(payload)
+      if (err?.code === '23505') {
+        const { error: retryErr } = await supabase.from('posts').insert({ ...payload, slug: `${slug}-${Date.now().toString(36)}` })
+        if (retryErr) { toast.error(retryErr.message); setSaving(false); return }
+      } else if (err) {
+        toast.error(err.message); setSaving(false); return
+      }
     }
     try { localStorage.removeItem(DRAFT_KEY) } catch {}
     toast.success(published ? 'Post publicado' : 'Borrador guardado')
@@ -129,7 +183,7 @@ export default function NewPostPage() {
         </div>
       )}
 
-      <div className="max-w-3xl mx-auto px-8 sm:px-16 py-8">
+      <div className={`mx-auto px-8 sm:px-16 py-8 ${focusMode ? 'max-w-4xl' : 'max-w-3xl'}`}>
         {/* Topbar */}
         <div className="flex items-center justify-between mb-12">
           <Link href="/dashboard" className="flex items-center gap-1.5 text-sm hover:opacity-60 transition-opacity" style={{ color: 'var(--text-secondary)' }}>
@@ -138,7 +192,29 @@ export default function NewPostPage() {
             </svg>
             Dashboard
           </Link>
+          {autoSaveStatus !== 'idle' && (
+            <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+              {autoSaveStatus === 'saving' ? 'Guardando…' : '✓ Guardado'}
+            </span>
+          )}
           <div className="flex items-center gap-3">
+            <button
+              onClick={toggleFocusMode}
+              className="text-sm px-2.5 py-1.5 rounded border transition-colors hover:bg-[var(--bg-hover)]"
+              style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+              title={focusMode ? 'Salir del modo enfoque' : 'Modo enfoque'}
+            >
+              {focusMode ? (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                </svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+                  <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+                </svg>
+              )}
+            </button>
             <label className="flex items-center gap-1.5 text-sm cursor-pointer select-none" style={{ color: 'var(--text-secondary)' }}>
               <input type="checkbox" checked={published} onChange={e => setPublished(e.target.checked)} className="rounded" />
               Publicar

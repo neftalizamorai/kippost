@@ -6,6 +6,7 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 import LogoutButton from '@/app/dashboard/LogoutButton'
 import SidebarNavLinks from '@/components/SidebarNavLinks'
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb'
+import { FocusProvider, useFocusMode } from '@/contexts/FocusContext'
 
 interface Props {
   profile: { username: string; name: string; avatar_url: string | null } | null
@@ -15,8 +16,9 @@ interface Props {
   children: React.ReactNode
 }
 
-export default function DashboardShell({ profile, publishedCount, draftCount, siteName, children }: Props) {
+function DashboardShellInner({ profile, publishedCount, draftCount, siteName, children }: Props) {
   const [open, setOpen] = useState(false)
+  const { focusMode } = useFocusMode()
 
   const sidebarContent = (
     <>
@@ -81,7 +83,7 @@ export default function DashboardShell({ profile, publishedCount, draftCount, si
           fixed md:static inset-y-0 left-0 z-40
           w-64 md:w-56 flex-shrink-0 flex flex-col h-screen
           transition-transform duration-200 ease-in-out
-          ${open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          ${focusMode ? 'hidden' : open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
         style={{ borderRight: '1px solid var(--border)', background: 'var(--bg)' }}
       >
@@ -92,7 +94,7 @@ export default function DashboardShell({ profile, publishedCount, draftCount, si
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top bar */}
         <header
-          className="flex items-center gap-3 px-4 md:px-6 flex-shrink-0"
+          className={`flex items-center gap-3 px-4 md:px-6 flex-shrink-0 ${focusMode ? 'md:hidden' : ''}`}
           style={{ borderBottom: '1px solid var(--border)', height: '44px', background: 'var(--bg)' }}
         >
           {/* Hamburger — mobile only */}
@@ -125,5 +127,13 @@ export default function DashboardShell({ profile, publishedCount, draftCount, si
         </main>
       </div>
     </div>
+  )
+}
+
+export default function DashboardShell(props: Props) {
+  return (
+    <FocusProvider>
+      <DashboardShellInner {...props} />
+    </FocusProvider>
   )
 }

@@ -8,6 +8,7 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import TagInput from '@/components/TagInput'
 import { toast } from 'sonner'
+import { useFocusMode } from '@/contexts/FocusContext'
 
 const BlockNoteEditor = dynamic(() => import('@/components/BlockNoteEditor'), { ssr: false })
 
@@ -41,8 +42,11 @@ export default function EditPostPage() {
   const [deleting, setDeleting] = useState(false)
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const autoSaveRef = useRef<ReturnType<typeof setInterval>>()
   const titleRef = useRef<HTMLTextAreaElement>(null)
   const router = useRouter()
+  const { focusMode, toggleFocusMode } = useFocusMode()
 
   useEffect(() => {
     const load = async () => {
@@ -69,6 +73,33 @@ export default function EditPostPage() {
     }
     load()
   }, [postId])
+
+  useEffect(() => {
+    autoSaveRef.current = setInterval(async () => {
+      if (!title.trim() || loading) return
+      setAutoSaveStatus('saving')
+      const supabase = createClient()
+      const plainText = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+      const finalExcerpt = excerpt.trim() || generateExcerpt(plainText)
+      await supabase.from('posts').update({
+        title: title.trim(), content, excerpt: finalExcerpt,
+        tags: tags.filter(Boolean), published, pinned,
+        cover_image_url: coverImageUrl || null,
+        updated_at: new Date().toISOString(),
+      }).eq('id', postId)
+      setAutoSaveStatus('saved')
+      setTimeout(() => setAutoSaveStatus('idle'), 3000)
+    }, 30000)
+    return () => clearInterval(autoSaveRef.current)
+  }, [title, content, excerpt, tags, published, pinned, coverImageUrl, loading, postId])
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && focusMode) toggleFocusMode()
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [focusMode, toggleFocusMode])
 
   // Resize title textarea when content loads
   useEffect(() => {
@@ -171,7 +202,7 @@ export default function EditPostPage() {
         </div>
       )}
 
-      <div className="max-w-3xl mx-auto px-8 sm:px-16 py-8">
+      <div className={`mx-auto px-8 sm:px-16 py-8 ${focusMode ? 'max-w-4xl' : 'max-w-3xl'}`}>
         {/* Topbar */}
         <div className="flex items-center justify-between mb-12">
           <Link href="/dashboard" className="flex items-center gap-1.5 text-sm hover:opacity-60 transition-opacity" style={{ color: 'var(--text-secondary)' }}>
@@ -180,7 +211,29 @@ export default function EditPostPage() {
             </svg>
             Dashboard
           </Link>
+          {autoSaveStatus !== 'idle' && (
+            <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+              {autoSaveStatus === 'saving' ? 'Guardando…' : '✓ Guardado'}
+            </span>
+          )}
           <div className="flex items-center gap-2">
+            <button
+              onClick={toggleFocusMode}
+              className="text-sm px-2.5 py-1.5 rounded border transition-colors hover:bg-[var(--bg-hover)]"
+              style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+              title={focusMode ? 'Salir del modo enfoque' : 'Modo enfoque'}
+            >
+              {focusMode ? (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                </svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+                  <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+                </svg>
+              )}
+            </button>
             <label className="flex items-center gap-1.5 text-sm cursor-pointer select-none" style={{ color: 'var(--text-secondary)' }}>
               <input type="checkbox" checked={published} onChange={e => setPublished(e.target.checked)} className="rounded" />
               Publicado
