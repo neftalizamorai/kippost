@@ -64,6 +64,7 @@ export default function BlockNoteEditor({ initialContent, onChange }: Props) {
       editor={editor}
       theme="light"
       onChange={() => onChange(JSON.stringify(editor.document))}
+      style={{ minHeight: '50vh' }}
     >
       {/* Compact toolbar above virtual keyboard on mobile */}
       <ExperimentalMobileFormattingToolbarController formattingToolbar={compactToolbar} />

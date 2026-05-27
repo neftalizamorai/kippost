@@ -41,6 +41,7 @@ export default function EditPostPage() {
   const [deleting, setDeleting] = useState(false)
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(true)
+  const titleRef = useRef<HTMLTextAreaElement>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -68,6 +69,14 @@ export default function EditPostPage() {
     }
     load()
   }, [postId])
+
+  // Resize title textarea when content loads
+  useEffect(() => {
+    const el = titleRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = el.scrollHeight + 'px'
+  }, [title])
 
   const handleSave = async () => {
     if (!title.trim()) { toast.error('El título es obligatorio.'); return }
@@ -220,12 +229,9 @@ export default function EditPostPage() {
           </div>
 
           <textarea
+            ref={titleRef}
             value={title}
-            onChange={e => {
-              setTitle(e.target.value)
-              e.target.style.height = 'auto'
-              e.target.style.height = e.target.scrollHeight + 'px'
-            }}
+            onChange={e => setTitle(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') e.preventDefault() }}
             placeholder="Sin título"
             rows={1}

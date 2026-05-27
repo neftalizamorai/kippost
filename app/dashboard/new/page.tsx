@@ -25,6 +25,7 @@ export default function NewPostPage() {
   const [coverImageUrl, setCoverImageUrl] = useState('')
   const [uploading, setUploading] = useState(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>()
+  const titleRef = useRef<HTMLTextAreaElement>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -45,6 +46,14 @@ export default function NewPostPage() {
     setInitialized(true)
     setInitialContent(prev => prev ?? '')
   }, [])
+
+  // Resize title textarea when content loads from draft
+  useEffect(() => {
+    const el = titleRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = el.scrollHeight + 'px'
+  }, [title])
 
   useEffect(() => {
     if (!initialized) return
@@ -154,12 +163,9 @@ export default function NewPostPage() {
           </div>
 
           <textarea
+            ref={titleRef}
             value={title}
-            onChange={e => {
-              setTitle(e.target.value)
-              e.target.style.height = 'auto'
-              e.target.style.height = e.target.scrollHeight + 'px'
-            }}
+            onChange={e => setTitle(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') e.preventDefault() }}
             placeholder="Sin título"
             rows={1}
