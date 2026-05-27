@@ -7,9 +7,10 @@ interface Props {
   username: string
   publishedCount: number
   draftCount: number
+  onNavigate?: () => void
 }
 
-export default function SidebarNavLinks({ username, publishedCount, draftCount }: Props) {
+export default function SidebarNavLinks({ username, publishedCount, draftCount, onNavigate }: Props) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const tab = searchParams.get('tab') // null = 'all'
@@ -25,6 +26,7 @@ export default function SidebarNavLinks({ username, publishedCount, draftCount }
     <Link
       href={href}
       target={external ? '_blank' : undefined}
+      onClick={onNavigate}
       className="flex items-center gap-2.5 px-2.5 py-1.5 rounded text-sm transition-colors hover:bg-[var(--bg-hover)]"
       style={{
         color: 'var(--text)',
@@ -46,6 +48,7 @@ export default function SidebarNavLinks({ username, publishedCount, draftCount }
   const subItem = (href: string, label: string, tabKey: string, count?: number) => (
     <Link
       href={href}
+      onClick={onNavigate}
       className="flex items-center justify-between pl-8 pr-2.5 py-1 rounded text-sm transition-colors hover:bg-[var(--bg-hover)]"
       style={{
         color: isTab(tabKey) ? 'var(--text)' : 'var(--text-secondary)',
@@ -82,6 +85,7 @@ export default function SidebarNavLinks({ username, publishedCount, draftCount }
       {/* Crear button */}
       <Link
         href="/dashboard/new"
+        onClick={onNavigate}
         className="flex items-center justify-center gap-2 mt-3 mb-2 px-4 py-2 rounded text-sm font-medium hover:opacity-90 transition-opacity"
         style={{ background: 'var(--text)', color: 'var(--bg)' }}
       >
