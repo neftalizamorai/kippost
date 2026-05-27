@@ -153,12 +153,17 @@ export default function NewPostPage() {
             )}
           </div>
 
-          <input
-            type="text"
+          <textarea
             value={title}
-            onChange={e => setTitle(e.target.value)}
+            onChange={e => {
+              setTitle(e.target.value)
+              e.target.style.height = 'auto'
+              e.target.style.height = e.target.scrollHeight + 'px'
+            }}
+            onKeyDown={e => { if (e.key === 'Enter') e.preventDefault() }}
             placeholder="Sin título"
-            className="w-full text-4xl font-bold bg-transparent border-none outline-none leading-tight mb-3 placeholder-[var(--text-tertiary)]"
+            rows={1}
+            className="w-full text-4xl font-bold bg-transparent border-none outline-none leading-tight mb-3 placeholder-[var(--text-tertiary)] resize-none overflow-hidden"
             style={{ color: 'var(--text)' }}
           />
 
