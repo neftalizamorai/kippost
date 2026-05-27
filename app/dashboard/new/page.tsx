@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { slugify, generateExcerpt } from '@/lib/utils'
 import Link from 'next/link'
-import { RichTextEditor } from '@/components/RichTextEditor'
+import dynamic from 'next/dynamic'
 import TagInput from '@/components/TagInput'
 import { toast } from 'sonner'
+
+const BlockNoteEditor = dynamic(() => import('@/components/BlockNoteEditor'), { ssr: false })
 
 const DRAFT_KEY = 'kippost:new-draft'
 
@@ -19,7 +21,7 @@ export default function NewPostPage() {
   const [published, setPublished] = useState(false)
   const [saving, setSaving] = useState(false)
   const [initialized, setInitialized] = useState(false)
-  const [draftContent, setDraftContent] = useState('')
+  const [initialContent, setInitialContent] = useState<string | null>(null)
   const [coverImageUrl, setCoverImageUrl] = useState('')
   const [uploading, setUploading] = useState(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>()
@@ -32,7 +34,7 @@ export default function NewPostPage() {
         const draft = JSON.parse(raw)
         if (draft.title || draft.content) {
           setTitle(draft.title || '')
-          setDraftContent(draft.content || '')
+          setInitialContent(draft.content || '')
           setContent(draft.content || '')
           setExcerpt(draft.excerpt || '')
           setTags(draft.tags || [])
@@ -41,6 +43,7 @@ export default function NewPostPage() {
       }
     } catch {}
     setInitialized(true)
+    setInitialContent(prev => prev ?? '')
   }, [])
 
   useEffect(() => {
@@ -172,7 +175,9 @@ export default function NewPostPage() {
         <div className="mb-8" style={{ borderTop: '1px solid var(--border)' }} />
 
         <div className="mb-10">
-          {initialized && <RichTextEditor content={draftContent} onChange={setContent} />}
+          {initialized && initialContent !== null && (
+            <BlockNoteEditor initialContent={initialContent} onChange={setContent} />
+          )}
         </div>
 
         <div className="pt-6" style={{ borderTop: '1px solid var(--border)' }}>

@@ -5,9 +5,11 @@ import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { generateExcerpt } from '@/lib/utils'
 import Link from 'next/link'
-import { RichTextEditor } from '@/components/RichTextEditor'
+import dynamic from 'next/dynamic'
 import TagInput from '@/components/TagInput'
 import { toast } from 'sonner'
+
+const BlockNoteEditor = dynamic(() => import('@/components/BlockNoteEditor'), { ssr: false })
 
 interface Post {
   id: string
@@ -28,7 +30,7 @@ export default function EditPostPage() {
   const [post, setPost] = useState<Post | null>(null)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [initialHtml, setInitialHtml] = useState<string | null>(null)
+  const [initialContent, setInitialContent] = useState<string | null>(null)
   const [excerpt, setExcerpt] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [published, setPublished] = useState(false)
@@ -53,13 +55,14 @@ export default function EditPostPage() {
         setPublished(data.published)
         setPinned(data.pinned ?? false)
         setCoverImageUrl(data.cover_image_url || '')
-        let html = data.content || ''
-        if (html && !html.trimStart().startsWith('<')) {
+        let contentToLoad = data.content || ''
+        // Legacy markdown → HTML so BlockNoteEditor can parse it
+        if (contentToLoad && !contentToLoad.trimStart().startsWith('<') && !contentToLoad.trimStart().startsWith('[')) {
           const { marked } = await import('marked')
-          html = marked.parse(html) as string
+          contentToLoad = marked.parse(contentToLoad) as string
         }
-        setInitialHtml(html)
-        setContent(html)
+        setInitialContent(contentToLoad)
+        setContent(contentToLoad)
       }
       setLoading(false)
     }
@@ -238,7 +241,9 @@ export default function EditPostPage() {
         <div className="mb-8" style={{ borderTop: '1px solid var(--border)' }} />
 
         <div className="mb-10">
-          {initialHtml !== null && <RichTextEditor content={initialHtml} onChange={setContent} />}
+          {initialContent !== null && (
+            <BlockNoteEditor initialContent={initialContent} onChange={setContent} />
+          )}
         </div>
 
         <div className="pt-6" style={{ borderTop: '1px solid var(--border)' }}>

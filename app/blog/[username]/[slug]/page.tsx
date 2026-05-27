@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { formatDate, readingTime, addHeadingIds, extractHeadings } from '@/lib/utils'
 import { marked } from 'marked'
 import sanitizeHtml from 'sanitize-html'
+import { blocknoteToHtml } from '@/lib/blocknote-to-html'
 import { ReadingProgress } from '@/components/ReadingProgress'
 import { TableOfContents } from '@/components/TableOfContents'
 import { ShareButton } from '@/components/ShareButton'
@@ -110,9 +111,15 @@ export default async function PostPage({ params }: Props) {
   const prevPost = idx > 0 ? allPosts![idx - 1] : null
   const nextPost = idx >= 0 && idx < (allPosts?.length ?? 0) - 1 ? allPosts![idx + 1] : null
 
-  const rawHtml = post.content?.trimStart().startsWith('<')
-    ? post.content
-    : marked.parse(post.content || '') as string
+  const trimmedContent = post.content?.trimStart() ?? ''
+  let rawHtml: string
+  if (trimmedContent.startsWith('[')) {
+    rawHtml = blocknoteToHtml(post.content || '')
+  } else if (trimmedContent.startsWith('<')) {
+    rawHtml = post.content!
+  } else {
+    rawHtml = marked.parse(post.content || '') as string
+  }
   const html = addHeadingIds(sanitizeHtml(rawHtml, ALLOWED_HTML))
   const headings = extractHeadings(html)
   const mins = readingTime(post.content || '')
