@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useEffect } from 'react'
-import { useCreateBlockNote } from '@blocknote/react'
+import { useCreateBlockNote, ExperimentalMobileFormattingToolbarController } from '@blocknote/react'
 import { BlockNoteView } from '@blocknote/mantine'
 import '@blocknote/core/style.css'
 import '@blocknote/mantine/style.css'
@@ -42,10 +42,18 @@ export default function BlockNoteEditor({ initialContent, onChange }: Props) {
   }, [])
 
   return (
-    <BlockNoteView
-      editor={editor}
-      theme="light"
-      onChange={() => onChange(JSON.stringify(editor.document))}
-    />
+    <div>
+      <BlockNoteView
+        editor={editor}
+        theme="light"
+        onChange={() => onChange(JSON.stringify(editor.document))}
+      >
+        {/* Toolbar that sticks above the virtual keyboard on mobile */}
+        <ExperimentalMobileFormattingToolbarController />
+      </BlockNoteView>
+      <p className="text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>
+        Selecciona texto para dar formato · Escribe <kbd style={{ fontFamily: 'monospace', background: 'var(--bg-secondary)', padding: '0 4px', borderRadius: 3 }}>/</kbd> para insertar bloques
+      </p>
+    </div>
   )
 }
