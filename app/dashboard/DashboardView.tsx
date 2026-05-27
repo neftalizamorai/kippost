@@ -311,56 +311,54 @@ export default function DashboardView({ posts, username, name }: Omit<Props, 'de
   )
 
   return (
-    <div className="px-8 py-8 max-w-5xl">
-      <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--text)' }}>Posts</h1>
-      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
-        Organiza, planea y publica tu contenido.
-      </p>
+    <div className="w-full px-4 sm:px-8 py-6 sm:py-8 max-w-5xl">
+      <div className="flex items-start justify-between mb-5">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold mb-0.5" style={{ color: 'var(--text)' }}>Posts</h1>
+          <p className="text-sm hidden sm:block" style={{ color: 'var(--text-secondary)' }}>
+            Organiza, planea y publica tu contenido.
+          </p>
+        </div>
+        {/* Crear button — top right on mobile */}
+        <Link
+          href="/dashboard/new"
+          className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded hover:opacity-90 transition-opacity flex-shrink-0"
+          style={{ background: 'var(--text)', color: 'var(--bg)' }}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          <span className="hidden sm:inline">Crear</span>
+        </Link>
+      </div>
 
-      {/* Tabs + view toggle + Crear */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-0.5 p-1 rounded" style={{ background: 'var(--bg-secondary)' }}>
-          {tabBtn('all', 'Todos', posts.length)}
-          {tabBtn('published', 'Publicado', published.length)}
-          <button
-            disabled
-            className="px-3 py-1.5 rounded text-sm cursor-not-allowed"
-            style={{ color: 'var(--text-tertiary)' }}
-            title="Próximamente"
-          >
-            Programado
-          </button>
-          {tabBtn('draft', 'Borradores', drafts.length)}
+      {/* Tabs + view toggle */}
+      <div className="flex items-center justify-between gap-2 mb-4">
+        {/* Tabs — scrollable on mobile */}
+        <div className="overflow-x-auto flex-1 min-w-0 -mx-1 px-1" style={{ scrollbarWidth: 'none' }}>
+          <div className="flex items-center gap-0.5 p-1 rounded w-fit" style={{ background: 'var(--bg-secondary)' }}>
+            {tabBtn('all', 'Todos', posts.length)}
+            {tabBtn('published', 'Publicado', published.length)}
+            {tabBtn('draft', 'Borradores', drafts.length)}
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="flex rounded border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
-            {viewBtn('list',
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
-                <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
-              </svg>,
-              'Vista lista'
-            )}
-            {viewBtn('grid',
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
-              </svg>,
-              'Vista cuadrícula'
-            )}
-          </div>
-
-          <Link
-            href="/dashboard/new"
-            className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded hover:opacity-90 transition-opacity"
-            style={{ background: 'var(--text)', color: 'var(--bg)' }}
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            Crear
-          </Link>
+        {/* View toggle */}
+        <div className="flex rounded border overflow-hidden flex-shrink-0" style={{ borderColor: 'var(--border)' }}>
+          {viewBtn('list',
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>,
+            'Vista lista'
+          )}
+          {viewBtn('grid',
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+            </svg>,
+            'Vista cuadrícula'
+          )}
         </div>
       </div>
 
@@ -393,11 +391,11 @@ export default function DashboardView({ posts, username, name }: Omit<Props, 'de
         <select
           value={sort}
           onChange={e => setSort(e.target.value as 'newest' | 'oldest')}
-          className="text-sm px-3 py-2 rounded border outline-none cursor-pointer"
+          className="text-sm px-2 py-2 rounded border outline-none cursor-pointer flex-shrink-0"
           style={{ borderColor: 'var(--border)', color: 'var(--text)', background: 'var(--bg)' }}
         >
-          <option value="newest">Más recientes</option>
-          <option value="oldest">Más antiguos</option>
+          <option value="newest">Recientes</option>
+          <option value="oldest">Antiguos</option>
         </select>
       </div>
 
