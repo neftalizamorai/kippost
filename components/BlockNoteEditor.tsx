@@ -1,7 +1,14 @@
 'use client'
 
 import { useMemo, useEffect } from 'react'
-import { useCreateBlockNote, ExperimentalMobileFormattingToolbarController } from '@blocknote/react'
+import {
+  useCreateBlockNote,
+  ExperimentalMobileFormattingToolbarController,
+  FormattingToolbar,
+  BasicTextStyleButton,
+  BlockTypeSelect,
+  CreateLinkButton,
+} from '@blocknote/react'
 import { BlockNoteView } from '@blocknote/mantine'
 import '@blocknote/core/style.css'
 import '@blocknote/mantine/style.css'
@@ -41,19 +48,25 @@ export default function BlockNoteEditor({ initialContent, onChange }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const compactToolbar = () => (
+    <FormattingToolbar>
+      <BlockTypeSelect key="blockTypeSelect" />
+      <BasicTextStyleButton basicTextStyle="bold" key="bold" />
+      <BasicTextStyleButton basicTextStyle="italic" key="italic" />
+      <BasicTextStyleButton basicTextStyle="underline" key="underline" />
+      <BasicTextStyleButton basicTextStyle="strike" key="strike" />
+      <CreateLinkButton key="link" />
+    </FormattingToolbar>
+  )
+
   return (
-    <div>
-      <BlockNoteView
-        editor={editor}
-        theme="light"
-        onChange={() => onChange(JSON.stringify(editor.document))}
-      >
-        {/* Toolbar that sticks above the virtual keyboard on mobile */}
-        <ExperimentalMobileFormattingToolbarController />
-      </BlockNoteView>
-      <p className="text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>
-        Selecciona texto para dar formato · Escribe <kbd style={{ fontFamily: 'monospace', background: 'var(--bg-secondary)', padding: '0 4px', borderRadius: 3 }}>/</kbd> para insertar bloques
-      </p>
-    </div>
+    <BlockNoteView
+      editor={editor}
+      theme="light"
+      onChange={() => onChange(JSON.stringify(editor.document))}
+    >
+      {/* Compact toolbar above virtual keyboard on mobile */}
+      <ExperimentalMobileFormattingToolbarController formattingToolbar={compactToolbar} />
+    </BlockNoteView>
   )
 }
