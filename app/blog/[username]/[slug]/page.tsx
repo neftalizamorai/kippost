@@ -60,6 +60,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .single()
 
   if (!post) return {}
+
+  const ogImage = post.cover_image_url
+    ?? `/api/og?title=${encodeURIComponent(post.title)}&author=${encodeURIComponent(profile.name ?? '')}`
+
   return {
     title: post.title,
     description: post.excerpt || undefined,
@@ -74,13 +78,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: 'article',
       authors: profile.name ? [profile.name] : undefined,
       siteName: 'KipPost',
-      ...(post.cover_image_url ? { images: [{ url: post.cover_image_url }] } : {}),
+      images: [{ url: ogImage, width: 1200, height: 630 }],
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title: post.title,
       description: post.excerpt || undefined,
-      ...(post.cover_image_url ? { images: [post.cover_image_url] } : {}),
+      images: [ogImage],
     },
   }
 }

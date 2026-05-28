@@ -261,7 +261,7 @@ export default function NewPostPage() {
 
         <div className="mb-8" style={{ borderTop: '1px solid var(--border)' }} />
 
-        <div className="mb-10">
+        <div className="mb-10" style={focusMode ? { fontSize: '18px' } : undefined}>
           {initialized && initialContent !== null && (
             <BlockNoteEditor initialContent={initialContent} onChange={setContent} />
           )}
