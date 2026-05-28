@@ -6,9 +6,9 @@ import { createClient } from '@/lib/supabase/client'
 import { generateExcerpt } from '@/lib/utils'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import TagInput from '@/components/TagInput'
 import { toast } from 'sonner'
 import { useFocusMode } from '@/contexts/FocusContext'
+import PublishModal, { type ModalData } from '@/components/PublishModal'
 
 const BlockNoteEditor = dynamic(() => import('@/components/BlockNoteEditor'), { ssr: false })
 
@@ -43,6 +43,7 @@ export default function EditPostPage() {
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(true)
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const [showModal, setShowModal] = useState(false)
   const autoSaveRef = useRef<ReturnType<typeof setInterval>>()
   const titleRef = useRef<HTMLTextAreaElement>(null)
   const router = useRouter()
@@ -61,7 +62,6 @@ export default function EditPostPage() {
         setPinned(data.pinned ?? false)
         setCoverImageUrl(data.cover_image_url || '')
         let contentToLoad = data.content || ''
-        // Legacy markdown → HTML so BlockNoteEditor can parse it
         if (contentToLoad && !contentToLoad.trimStart().startsWith('<') && !contentToLoad.trimStart().startsWith('[')) {
           const { marked } = await import('marked')
           contentToLoad = marked.parse(contentToLoad) as string
@@ -101,7 +101,6 @@ export default function EditPostPage() {
     return () => document.removeEventListener('keydown', handler)
   }, [focusMode, toggleFocusMode])
 
-  // Resize title textarea when content loads
   useEffect(() => {
     const el = titleRef.current
     if (!el) return
@@ -109,28 +108,32 @@ export default function EditPostPage() {
     el.style.height = el.scrollHeight + 'px'
   }, [title])
 
-  const handleSave = async () => {
+  const handleSave = async (modalData: ModalData) => {
     if (!title.trim()) { toast.error('El título es obligatorio.'); return }
     setSaving(true)
     const supabase = createClient()
-    const cleanTags = tags.filter(Boolean)
     const plainText = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
-    const finalExcerpt = excerpt.trim() || generateExcerpt(plainText)
+    const finalExcerpt = modalData.excerpt.trim() || generateExcerpt(plainText)
     const { error: err } = await supabase.from('posts').update({
       title: title.trim(),
       content,
       excerpt: finalExcerpt,
-      tags: cleanTags,
-      published,
-      pinned,
+      tags: modalData.tags.filter(Boolean),
+      published: modalData.published,
+      pinned: modalData.pinned,
       cover_image_url: coverImageUrl || null,
       updated_at: new Date().toISOString(),
     }).eq('id', postId)
     if (err) {
       toast.error(err.message)
     } else {
+      setExcerpt(modalData.excerpt)
+      setTags(modalData.tags)
+      setPublished(modalData.published)
+      setPinned(modalData.pinned)
+      setShowModal(false)
       setSaved(true)
-      toast.success(published ? 'Post publicado' : 'Cambios guardados')
+      toast.success(modalData.published ? 'Post publicado' : 'Cambios guardados')
       setTimeout(() => setSaved(false), 2500)
     }
     setSaving(false)
@@ -186,7 +189,6 @@ export default function EditPostPage() {
     <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <input id="cover-upload-edit" type="file" accept="image/*" className="sr-only" onChange={handleCoverUpload} disabled={uploading} />
 
-      {/* Full-bleed cover */}
       {coverImageUrl && (
         <div className="relative group/cover w-full overflow-hidden" style={{ height: '280px' }}>
           <img src={coverImageUrl} alt="" className="w-full h-full object-cover" />
@@ -234,28 +236,13 @@ export default function EditPostPage() {
                 </svg>
               )}
             </button>
-            <label className="flex items-center gap-1.5 text-sm cursor-pointer select-none" style={{ color: 'var(--text-secondary)' }}>
-              <input type="checkbox" checked={published} onChange={e => setPublished(e.target.checked)} className="rounded" />
-              Publicado
-            </label>
-            <label
-              className="flex items-center gap-1.5 text-sm cursor-pointer select-none"
-              style={{ color: pinned ? 'var(--text)' : 'var(--text-secondary)' }}
-              title="Aparece como enlace en la barra de navegación del blog"
-            >
-              <input type="checkbox" checked={pinned} onChange={e => setPinned(e.target.checked)} className="rounded" />
-              <svg width="12" height="12" viewBox="0 0 24 24" fill={pinned ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/>
-              </svg>
-              Anclar
-            </label>
             <button
-              onClick={handleSave}
+              onClick={() => setShowModal(true)}
               disabled={saving}
               className="text-sm font-medium px-4 py-1.5 rounded hover:opacity-90 disabled:opacity-50"
               style={{ background: saved ? '#3a7a52' : 'var(--text)', color: 'var(--bg)' }}
             >
-              {saving ? 'Guardando…' : saved ? '✓ Guardado' : 'Guardar'}
+              {saved ? '✓ Guardado' : 'Guardar'}
             </button>
             <button
               onClick={handleDelete}
@@ -268,7 +255,7 @@ export default function EditPostPage() {
           </div>
         </div>
 
-        {/* Title area — ghost actions appear on hover */}
+        {/* Title area */}
         <div className="group/page mb-10">
           <div className="flex gap-1 mb-3 h-6 items-center opacity-0 group-hover/page:opacity-100 transition-opacity">
             {!coverImageUrl && (
@@ -291,15 +278,6 @@ export default function EditPostPage() {
             className="w-full text-4xl font-bold bg-transparent border-none outline-none leading-tight mb-3 placeholder-[var(--text-tertiary)] resize-none overflow-hidden"
             style={{ color: 'var(--text)' }}
           />
-
-          <textarea
-            value={excerpt}
-            onChange={e => setExcerpt(e.target.value)}
-            rows={2}
-            placeholder="Añade un extracto…"
-            className="w-full text-lg bg-transparent border-none outline-none resize-none leading-relaxed placeholder-[var(--text-tertiary)]"
-            style={{ color: 'var(--text-secondary)' }}
-          />
         </div>
 
         <div className="mb-8" style={{ borderTop: '1px solid var(--border)' }} />
@@ -309,14 +287,19 @@ export default function EditPostPage() {
             <BlockNoteEditor initialContent={initialContent} onChange={setContent} />
           )}
         </div>
-
-        <div className="pt-6" style={{ borderTop: '1px solid var(--border)' }}>
-          <TagInput tags={tags} onChange={setTags} />
-          <p className="text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>
-            Enter o coma para añadir etiquetas
-          </p>
-        </div>
       </div>
+
+      {showModal && (
+        <PublishModal
+          initialExcerpt={excerpt}
+          initialTags={tags}
+          initialPinned={pinned}
+          initialPublished={published}
+          saving={saving}
+          onClose={() => setShowModal(false)}
+          onConfirm={handleSave}
+        />
+      )}
     </div>
   )
 }

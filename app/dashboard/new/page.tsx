@@ -6,9 +6,9 @@ import { createClient } from '@/lib/supabase/client'
 import { slugify, generateExcerpt } from '@/lib/utils'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import TagInput from '@/components/TagInput'
 import { toast } from 'sonner'
 import { useFocusMode } from '@/contexts/FocusContext'
+import PublishModal, { type ModalData } from '@/components/PublishModal'
 
 const BlockNoteEditor = dynamic(() => import('@/components/BlockNoteEditor'), { ssr: false })
 
@@ -20,12 +20,14 @@ export default function NewPostPage() {
   const [excerpt, setExcerpt] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [published, setPublished] = useState(false)
+  const [pinned, setPinned] = useState(false)
   const [saving, setSaving] = useState(false)
   const [initialized, setInitialized] = useState(false)
   const [initialContent, setInitialContent] = useState<string | null>(null)
   const [coverImageUrl, setCoverImageUrl] = useState('')
   const [uploading, setUploading] = useState(false)
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const [showModal, setShowModal] = useState(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>()
   const autoSaveRef = useRef<ReturnType<typeof setInterval>>()
   const draftIdRef = useRef<string | null>(null)
@@ -44,6 +46,7 @@ export default function NewPostPage() {
           setContent(draft.content || '')
           setExcerpt(draft.excerpt || '')
           setTags(draft.tags || [])
+          setPinned(draft.pinned || false)
           setCoverImageUrl(draft.coverImageUrl || '')
         }
       }
@@ -52,7 +55,6 @@ export default function NewPostPage() {
     setInitialContent(prev => prev ?? '')
   }, [])
 
-  // Resize title textarea when content loads from draft
   useEffect(() => {
     const el = titleRef.current
     if (!el) return
@@ -66,11 +68,11 @@ export default function NewPostPage() {
     clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
       try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, content, excerpt, tags, coverImageUrl }))
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, content, excerpt, tags, pinned, coverImageUrl }))
       } catch {}
     }, 2000)
     return () => clearTimeout(saveTimerRef.current)
-  }, [title, content, excerpt, tags, coverImageUrl, initialized])
+  }, [title, content, excerpt, tags, pinned, coverImageUrl, initialized])
 
   useEffect(() => {
     autoSaveRef.current = setInterval(async () => {
@@ -111,7 +113,7 @@ export default function NewPostPage() {
     return () => document.removeEventListener('keydown', handler)
   }, [focusMode, toggleFocusMode])
 
-  const handleSave = async () => {
+  const handleSave = async (modalData: ModalData) => {
     if (!title.trim()) { toast.error('El título es obligatorio.'); return }
     setSaving(true)
     const supabase = createClient()
@@ -119,17 +121,25 @@ export default function NewPostPage() {
     if (!user) { router.push('/login'); return }
     const slug = slugify(title)
     const plainText = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
-    const finalExcerpt = excerpt.trim() || generateExcerpt(plainText)
+    const finalExcerpt = modalData.excerpt.trim() || generateExcerpt(plainText)
+    const payload = {
+      user_id: user.id,
+      title: title.trim(),
+      content,
+      excerpt: finalExcerpt,
+      tags: modalData.tags.filter(Boolean),
+      published: modalData.published,
+      pinned: modalData.pinned,
+      slug,
+      cover_image_url: coverImageUrl || null,
+    }
     if (draftIdRef.current) {
       const { error: err } = await supabase.from('posts').update({
-        title: title.trim(), content, excerpt: finalExcerpt,
-        tags: tags.filter(Boolean), published, slug,
-        cover_image_url: coverImageUrl || null,
+        ...payload,
         updated_at: new Date().toISOString(),
       }).eq('id', draftIdRef.current)
       if (err) { toast.error(err.message); setSaving(false); return }
     } else {
-      const payload = { user_id: user.id, title: title.trim(), content, excerpt: finalExcerpt, tags, published, slug, cover_image_url: coverImageUrl || null }
       const { error: err } = await supabase.from('posts').insert(payload)
       if (err?.code === '23505') {
         const { error: retryErr } = await supabase.from('posts').insert({ ...payload, slug: `${slug}-${Date.now().toString(36)}` })
@@ -139,7 +149,7 @@ export default function NewPostPage() {
       }
     }
     try { localStorage.removeItem(DRAFT_KEY) } catch {}
-    toast.success(published ? 'Post publicado' : 'Borrador guardado')
+    toast.success(modalData.published ? 'Post publicado' : 'Borrador guardado')
     router.push('/dashboard')
   }
 
@@ -167,7 +177,6 @@ export default function NewPostPage() {
     <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <input id="cover-upload-new" type="file" accept="image/*" className="sr-only" onChange={handleCoverUpload} disabled={uploading} />
 
-      {/* Full-bleed cover */}
       {coverImageUrl && (
         <div className="relative group/cover w-full overflow-hidden" style={{ height: '280px' }}>
           <img src={coverImageUrl} alt="" className="w-full h-full object-cover" />
@@ -215,17 +224,17 @@ export default function NewPostPage() {
                 </svg>
               )}
             </button>
-            <label className="flex items-center gap-1.5 text-sm cursor-pointer select-none" style={{ color: 'var(--text-secondary)' }}>
-              <input type="checkbox" checked={published} onChange={e => setPublished(e.target.checked)} className="rounded" />
-              Publicar
-            </label>
-            <button onClick={handleSave} disabled={saving} className="text-sm font-medium px-4 py-1.5 rounded hover:opacity-90 disabled:opacity-50" style={{ background: 'var(--text)', color: 'var(--bg)' }}>
-              {saving ? 'Guardando…' : published ? 'Publicar' : 'Guardar borrador'}
+            <button
+              onClick={() => setShowModal(true)}
+              className="text-sm font-medium px-4 py-1.5 rounded hover:opacity-90"
+              style={{ background: 'var(--text)', color: 'var(--bg)' }}
+            >
+              Guardar
             </button>
           </div>
         </div>
 
-        {/* Title area — ghost actions appear on hover */}
+        {/* Title area */}
         <div className="group/page mb-10">
           <div className="flex gap-1 mb-3 h-6 items-center opacity-0 group-hover/page:opacity-100 transition-opacity">
             {!coverImageUrl && (
@@ -248,15 +257,6 @@ export default function NewPostPage() {
             className="w-full text-4xl font-bold bg-transparent border-none outline-none leading-tight mb-3 placeholder-[var(--text-tertiary)] resize-none overflow-hidden"
             style={{ color: 'var(--text)' }}
           />
-
-          <textarea
-            value={excerpt}
-            onChange={e => setExcerpt(e.target.value)}
-            rows={2}
-            placeholder="Añade un extracto…"
-            className="w-full text-lg bg-transparent border-none outline-none resize-none leading-relaxed placeholder-[var(--text-tertiary)]"
-            style={{ color: 'var(--text-secondary)' }}
-          />
         </div>
 
         <div className="mb-8" style={{ borderTop: '1px solid var(--border)' }} />
@@ -266,14 +266,19 @@ export default function NewPostPage() {
             <BlockNoteEditor initialContent={initialContent} onChange={setContent} />
           )}
         </div>
-
-        <div className="pt-6" style={{ borderTop: '1px solid var(--border)' }}>
-          <TagInput tags={tags} onChange={setTags} />
-          <p className="text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>
-            Enter o coma para añadir etiquetas
-          </p>
-        </div>
       </div>
+
+      {showModal && (
+        <PublishModal
+          initialExcerpt={excerpt}
+          initialTags={tags}
+          initialPinned={pinned}
+          initialPublished={published}
+          saving={saving}
+          onClose={() => setShowModal(false)}
+          onConfirm={handleSave}
+        />
+      )}
     </div>
   )
 }

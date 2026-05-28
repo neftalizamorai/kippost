@@ -116,9 +116,6 @@ function DashboardShellInner({ profile, publishedCount, draftCount, siteName, ch
             </Suspense>
           </div>
 
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <ThemeToggle />
-          </div>
         </header>
 
         {/* Page content */}
