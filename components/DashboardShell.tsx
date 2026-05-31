@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, Suspense } from 'react'
-import Link from 'next/link'
+import { useState, useEffect, Suspense } from 'react'
+import { usePathname } from 'next/navigation'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import LogoutButton from '@/app/dashboard/LogoutButton'
 import SidebarNavLinks from '@/components/SidebarNavLinks'
@@ -18,11 +18,21 @@ interface Props {
 
 function DashboardShellInner({ profile, publishedCount, draftCount, siteName, children }: Props) {
   const [open, setOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const { focusMode } = useFocusMode()
+  const pathname = usePathname()
+
+  const isEditorPage = !!(
+    pathname?.startsWith('/dashboard/new') ||
+    pathname?.includes('/dashboard/edit/')
+  )
+
+  useEffect(() => {
+    setSidebarCollapsed(isEditorPage)
+  }, [isEditorPage])
 
   const sidebarContent = (
     <>
-      {/* User section */}
       <div className="p-3" style={{ borderBottom: '1px solid var(--border)' }}>
         <div className="flex items-center gap-2.5 px-2 py-1.5 rounded transition-colors hover:bg-[var(--bg-hover)] cursor-default">
           {profile?.avatar_url ? (
@@ -46,7 +56,6 @@ function DashboardShellInner({ profile, publishedCount, draftCount, siteName, ch
         </div>
       </div>
 
-      {/* Nav */}
       <div className="flex-1 p-3 overflow-y-auto">
         <Suspense>
           <SidebarNavLinks
@@ -58,7 +67,6 @@ function DashboardShellInner({ profile, publishedCount, draftCount, siteName, ch
         </Suspense>
       </div>
 
-      {/* Bottom */}
       <div className="p-4 flex items-center justify-between" style={{ borderTop: '1px solid var(--border)' }}>
         <ThemeToggle />
         <LogoutButton />
@@ -69,7 +77,6 @@ function DashboardShellInner({ profile, publishedCount, draftCount, siteName, ch
   return (
     <div className="min-h-screen flex" style={{ background: 'var(--bg)' }}>
 
-      {/* Mobile overlay */}
       {open && (
         <div
           className="fixed inset-0 bg-black/40 z-30 md:hidden"
@@ -77,13 +84,17 @@ function DashboardShellInner({ profile, publishedCount, draftCount, siteName, ch
         />
       )}
 
-      {/* Sidebar — drawer on mobile, static on desktop */}
+      {/* Sidebar — drawer on mobile, collapsible on desktop */}
       <aside
         className={`
           fixed md:static inset-y-0 left-0 z-40
-          w-64 md:w-56 flex-shrink-0 flex flex-col h-screen
-          transition-transform duration-200 ease-in-out
-          ${focusMode ? 'hidden' : open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          w-64 flex-shrink-0 flex flex-col h-screen
+          transition-all duration-200 ease-in-out
+          ${focusMode ? 'hidden' :
+            sidebarCollapsed
+              ? `md:w-0 md:overflow-hidden md:opacity-0 ${open ? 'translate-x-0' : '-translate-x-full'}`
+              : `md:w-56 ${open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`
+          }
         `}
         style={{ borderRight: '1px solid var(--border)', background: 'var(--bg)' }}
       >
@@ -92,9 +103,8 @@ function DashboardShellInner({ profile, publishedCount, draftCount, siteName, ch
 
       {/* Main column */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top bar */}
         <header
-          className={`flex items-center gap-3 px-4 md:px-6 flex-shrink-0 ${focusMode ? 'md:hidden' : ''}`}
+          className={`flex items-center gap-2 px-4 md:px-4 flex-shrink-0 ${focusMode ? 'md:hidden' : ''}`}
           style={{ borderBottom: '1px solid var(--border)', height: '44px', background: 'var(--bg)' }}
         >
           {/* Hamburger — mobile only */}
@@ -110,15 +120,26 @@ function DashboardShellInner({ profile, publishedCount, draftCount, siteName, ch
             </svg>
           </button>
 
+          {/* Sidebar toggle — desktop only */}
+          <button
+            className="hidden md:flex w-7 h-7 items-center justify-center rounded transition-colors hover:bg-[var(--bg-hover)] flex-shrink-0"
+            onClick={() => setSidebarCollapsed(v => !v)}
+            title={sidebarCollapsed ? 'Mostrar panel' : 'Ocultar panel'}
+            style={{ color: 'var(--text-tertiary)' }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="3" width="20" height="18" rx="2"/>
+              <line x1="8" y1="3" x2="8" y2="21"/>
+            </svg>
+          </button>
+
           <div className="flex-1 min-w-0">
             <Suspense fallback={null}>
               <DashboardBreadcrumb siteName={siteName} />
             </Suspense>
           </div>
-
         </header>
 
-        {/* Page content */}
         <main className="flex-1 overflow-y-auto">
           {children}
         </main>

@@ -204,7 +204,7 @@ export default function EditPostPage() {
         </div>
       )}
 
-      <div className={`mx-auto px-8 sm:px-16 py-8 ${focusMode ? 'max-w-4xl' : 'max-w-3xl'}`}>
+      <div className={`px-8 sm:px-16 py-8 ${focusMode ? 'max-w-4xl mx-auto' : 'max-w-3xl'}`}>
         {/* Topbar */}
         <div className="flex items-center justify-between mb-12">
           <Link href="/dashboard" className="flex items-center gap-1.5 text-sm hover:opacity-60 transition-opacity" style={{ color: 'var(--text-secondary)' }}>
