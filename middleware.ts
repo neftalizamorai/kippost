@@ -2,6 +2,14 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  // Rewrite /@username/* → /blog/username/*
+  const pathname = request.nextUrl.pathname
+  if (pathname.startsWith('/@')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/blog/' + pathname.slice(2)
+    return NextResponse.rewrite(url)
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
