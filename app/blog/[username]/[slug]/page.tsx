@@ -69,7 +69,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: post.excerpt || undefined,
     alternates: {
       types: {
-        'application/rss+xml': `/blog/${params.username}/rss`,
+        'application/rss+xml': `/@${params.username}/rss`,
       },
     },
     openGraph: {
@@ -152,7 +152,7 @@ export default async function PostPage({ params }: Props) {
         }}
       >
         <Link
-          href={`/blog/${params.username}`}
+          href={`/@${params.username}`}
           className="flex items-center gap-2 text-sm transition-opacity hover:opacity-70"
           style={{ color: 'var(--text-secondary)' }}
         >
@@ -248,7 +248,7 @@ export default async function PostPage({ params }: Props) {
               )}
               <div>
                 <Link
-                  href={`/blog/${profile.username}`}
+                  href={`/@${profile.username}`}
                   className="text-sm font-medium hover:underline"
                   style={{ color: 'var(--text)' }}
                 >
@@ -270,7 +270,7 @@ export default async function PostPage({ params }: Props) {
               >
                 <div>
                   {nextPost && (
-                    <Link href={`/blog/${params.username}/${nextPost.slug}`} className="group block">
+                    <Link href={`/@${params.username}/${nextPost.slug}`} className="group block">
                       <span className="text-xs block mb-1" style={{ color: 'var(--text-tertiary)' }}>← Anterior</span>
                       <span className="text-sm font-medium group-hover:underline" style={{ color: 'var(--text)' }}>
                         {nextPost.title}
@@ -280,7 +280,7 @@ export default async function PostPage({ params }: Props) {
                 </div>
                 <div className="text-right">
                   {prevPost && (
-                    <Link href={`/blog/${params.username}/${prevPost.slug}`} className="group block">
+                    <Link href={`/@${params.username}/${prevPost.slug}`} className="group block">
                       <span className="text-xs block mb-1" style={{ color: 'var(--text-tertiary)' }}>Siguiente →</span>
                       <span className="text-sm font-medium group-hover:underline" style={{ color: 'var(--text)' }}>
                         {prevPost.title}

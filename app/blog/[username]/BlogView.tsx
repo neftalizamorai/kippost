@@ -161,7 +161,7 @@ export default function BlogView({ profile, posts, config = {} }: Props) {
 
 function PostRow({ post, username, last }: { post: Post; username: string; last: boolean }) {
   return (
-    <Link href={`/blog/${username}/${post.slug}`}>
+    <Link href={`/@${username}/${post.slug}`}>
       <div
         className="group py-5 -mx-2 px-2 rounded transition-colors hover:bg-[var(--bg-hover)] cursor-pointer"
         style={{ borderBottom: last ? 'none' : '1px solid var(--border)' }}

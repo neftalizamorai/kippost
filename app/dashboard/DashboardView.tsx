@@ -114,7 +114,7 @@ function PostCard({ post, username, views }: { post: Post; username: string; vie
         <div className="flex items-center gap-1">
           {post.published && (
             <a
-              href={`/blog/${username}/${post.slug}`}
+              href={`/@${username}/${post.slug}`}
               target="_blank"
               rel="noopener noreferrer"
               className="w-6 h-6 flex items-center justify-center rounded transition-colors hover:bg-[var(--bg-secondary)]"
@@ -207,7 +207,7 @@ function PostRow({ post, username, last, views }: { post: Post; username: string
       <div className="flex items-center gap-0.5 flex-shrink-0">
         {post.published && (
           <a
-            href={`/blog/${username}/${post.slug}`}
+            href={`/@${username}/${post.slug}`}
             target="_blank"
             rel="noopener noreferrer"
             className="w-8 h-8 flex items-center justify-center rounded transition-colors hover:bg-[var(--bg-hover)]"

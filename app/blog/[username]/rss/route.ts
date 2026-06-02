@@ -31,7 +31,7 @@ export async function GET(
     .limit(20)
 
   const base = new URL(request.url).origin
-  const blogUrl = `${base}/blog/${params.username}`
+  const blogUrl = `${base}/@${params.username}`
 
   const items = (posts ?? []).map(p => `
   <item>

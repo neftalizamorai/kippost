@@ -121,7 +121,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: profile.bio ?? `Blog de ${profile.name}`,
     alternates: {
       types: {
-        'application/rss+xml': `/blog/${params.username}/rss`,
+        'application/rss+xml': `/@${params.username}/rss`,
       },
     },
   }
@@ -176,7 +176,7 @@ export default async function BlogPage({ params }: Props) {
                 {pinnedPosts.map(p => (
                   <Link
                     key={p.slug}
-                    href={`/blog/${params.username}/${p.slug}`}
+                    href={`/@${params.username}/${p.slug}`}
                     className="text-sm transition-opacity hover:opacity-70"
                     style={{ color: 'var(--text-secondary)' }}
                   >
@@ -189,7 +189,7 @@ export default async function BlogPage({ params }: Props) {
         </div>
         <div className="flex items-center gap-1">
           <a
-            href={`/blog/${params.username}/rss`}
+            href={`/@${params.username}/rss`}
             target="_blank"
             rel="noopener noreferrer"
             title="Feed RSS"

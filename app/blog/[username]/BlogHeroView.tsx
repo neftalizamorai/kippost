@@ -88,7 +88,7 @@ export default function BlogHeroView({ profile, posts, config = {} }: Props) {
       ) : (
         <div>
           {posts.map((post, i) => (
-            <Link key={post.id} href={`/blog/${profile.username}/${post.slug}`}>
+            <Link key={post.id} href={`/@${profile.username}/${post.slug}`}>
               <div
                 className="group py-5 transition-colors hover:bg-[var(--bg-hover)] -mx-3 px-3 rounded"
                 style={{ borderBottom: i === posts.length - 1 ? 'none' : '1px solid var(--border)' }}
