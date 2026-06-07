@@ -110,7 +110,7 @@ export default function RegisterPage() {
             </label>
             <div className="flex items-center rounded border overflow-hidden transition-all focus-within:ring-1 focus-within:ring-[var(--text)]" style={{ borderColor: 'var(--border)' }}>
               <span className="px-3 py-2 text-sm border-r" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
-                kippost.com/blog/
+                kippost.com/@
               </span>
               <input
                 type="text"

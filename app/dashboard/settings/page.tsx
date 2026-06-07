@@ -230,7 +230,7 @@ export default function SettingsPage() {
       <h1 className="text-xl font-bold mb-1" style={{ color: 'var(--text)' }}>Perfil</h1>
       <p className="text-sm mb-8" style={{ color: 'var(--text-secondary)' }}>
         Tu blog público está en{' '}
-        <span className="font-mono text-xs" style={{ color: 'var(--text)' }}>/blog/{username}</span>
+        <span className="font-mono text-xs" style={{ color: 'var(--text)' }}>/@{username}</span>
       </p>
 
       {/* Avatar uploader */}
