@@ -3,16 +3,25 @@
 import { useState, useEffect, useRef, ChangeEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { slugify, generateExcerpt } from '@/lib/utils'
+import { slugify } from '@/lib/utils'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { toast } from 'sonner'
 import { useFocusMode } from '@/contexts/FocusContext'
-import PublishModal, { type ModalData } from '@/components/PublishModal'
+import PostSettingsPanel from '@/components/PostSettingsPanel'
 
 const BlockNoteEditor = dynamic(() => import('@/components/BlockNoteEditor'), { ssr: false })
 
 const DRAFT_KEY = 'kippost:new-draft'
+
+function extractFirstParagraph(contentJson: string): string {
+  try {
+    const blocks = JSON.parse(contentJson)
+    if (!Array.isArray(blocks)) return ''
+    const first = blocks.find((b: any) => b.type === 'paragraph' && b.content?.length > 0)
+    return first?.content?.map((c: any) => c.text ?? '').join('') ?? ''
+  } catch { return '' }
+}
 
 export default function NewPostPage() {
   const [title, setTitle] = useState('')
@@ -27,7 +36,7 @@ export default function NewPostPage() {
   const [coverImageUrl, setCoverImageUrl] = useState('')
   const [uploading, setUploading] = useState(false)
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
-  const [showModal, setShowModal] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>()
   const autoSaveRef = useRef<ReturnType<typeof setInterval>>()
   const draftIdRef = useRef<string | null>(null)
@@ -81,8 +90,7 @@ export default function NewPostPage() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const plainText = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
-      const finalExcerpt = excerpt.trim() || generateExcerpt(plainText)
+      const finalExcerpt = excerpt.trim() || extractFirstParagraph(content)
 
       if (draftIdRef.current) {
         await supabase.from('posts').update({
@@ -113,23 +121,22 @@ export default function NewPostPage() {
     return () => document.removeEventListener('keydown', handler)
   }, [focusMode, toggleFocusMode])
 
-  const handleSave = async (modalData: ModalData) => {
+  const handleSave = async () => {
     if (!title.trim()) { toast.error('El título es obligatorio.'); return }
     setSaving(true)
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
     const slug = slugify(title)
-    const plainText = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
-    const finalExcerpt = modalData.excerpt.trim() || generateExcerpt(plainText)
+    const finalExcerpt = excerpt.trim() || extractFirstParagraph(content)
     const payload = {
       user_id: user.id,
       title: title.trim(),
       content,
       excerpt: finalExcerpt,
-      tags: modalData.tags.filter(Boolean),
-      published: modalData.published,
-      pinned: modalData.pinned,
+      tags: tags.filter(Boolean),
+      published,
+      pinned,
       slug,
       cover_image_url: coverImageUrl || null,
     }
@@ -149,7 +156,7 @@ export default function NewPostPage() {
       }
     }
     try { localStorage.removeItem(DRAFT_KEY) } catch {}
-    toast.success(modalData.published ? 'Post publicado' : 'Borrador guardado')
+    toast.success(published ? 'Post publicado' : 'Borrador guardado')
     router.push('/dashboard')
   }
 
@@ -164,7 +171,7 @@ export default function NewPostPage() {
       const ext = file.name.split('.').pop() ?? 'jpg'
       const filePath = `${user.id}/${Date.now()}.${ext}`
       const { error } = await supabase.storage.from('covers').upload(filePath, file, { upsert: true })
-      if (error) { console.error('Cover upload error:', error); toast.error(error.message); return }
+      if (error) { toast.error(error.message); return }
       const { data: { publicUrl } } = supabase.storage.from('covers').getPublicUrl(filePath)
       setCoverImageUrl(publicUrl)
       e.target.value = ''
@@ -206,7 +213,7 @@ export default function NewPostPage() {
               {autoSaveStatus === 'saving' ? 'Guardando…' : '✓ Guardado'}
             </span>
           )}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={toggleFocusMode}
               className="text-sm px-2.5 py-1.5 rounded border transition-colors hover:bg-[var(--bg-hover)]"
@@ -225,11 +232,25 @@ export default function NewPostPage() {
               )}
             </button>
             <button
-              onClick={() => setShowModal(true)}
-              className="text-sm font-medium px-4 py-1.5 rounded hover:opacity-90"
+              onClick={() => setShowSettings(true)}
+              className="text-sm px-2.5 py-1.5 rounded border transition-colors hover:bg-[var(--bg-hover)] relative"
+              style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+              title="Ajustes del post"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="6" y1="18" x2="18" y2="18"/>
+              </svg>
+              {published && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ background: '#28c840' }} />
+              )}
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="text-sm font-medium px-4 py-1.5 rounded hover:opacity-90 disabled:opacity-50"
               style={{ background: 'var(--text)', color: 'var(--bg)' }}
             >
-              Guardar
+              {saving ? 'Guardando…' : 'Guardar'}
             </button>
           </div>
         </div>
@@ -268,15 +289,17 @@ export default function NewPostPage() {
         </div>
       </div>
 
-      {showModal && (
-        <PublishModal
-          initialExcerpt={excerpt}
-          initialTags={tags}
-          initialPinned={pinned}
-          initialPublished={published}
-          saving={saving}
-          onClose={() => setShowModal(false)}
-          onConfirm={handleSave}
+      {showSettings && (
+        <PostSettingsPanel
+          excerpt={excerpt}
+          tags={tags}
+          published={published}
+          pinned={pinned}
+          onExcerptChange={setExcerpt}
+          onTagsChange={setTags}
+          onPublishedChange={setPublished}
+          onPinnedChange={setPinned}
+          onClose={() => setShowSettings(false)}
         />
       )}
     </div>

@@ -3,14 +3,22 @@
 import { useState, useEffect, useRef, ChangeEvent } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { generateExcerpt } from '@/lib/utils'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { toast } from 'sonner'
 import { useFocusMode } from '@/contexts/FocusContext'
-import PublishModal, { type ModalData } from '@/components/PublishModal'
+import PostSettingsPanel from '@/components/PostSettingsPanel'
 
 const BlockNoteEditor = dynamic(() => import('@/components/BlockNoteEditor'), { ssr: false })
+
+function extractFirstParagraph(contentJson: string): string {
+  try {
+    const blocks = JSON.parse(contentJson)
+    if (!Array.isArray(blocks)) return ''
+    const first = blocks.find((b: any) => b.type === 'paragraph' && b.content?.length > 0)
+    return first?.content?.map((c: any) => c.text ?? '').join('') ?? ''
+  } catch { return '' }
+}
 
 interface Post {
   id: string
@@ -43,7 +51,7 @@ export default function EditPostPage() {
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(true)
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
-  const [showModal, setShowModal] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const autoSaveRef = useRef<ReturnType<typeof setInterval>>()
   const titleRef = useRef<HTMLTextAreaElement>(null)
   const router = useRouter()
@@ -79,8 +87,7 @@ export default function EditPostPage() {
       if (!title.trim() || loading) return
       setAutoSaveStatus('saving')
       const supabase = createClient()
-      const plainText = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
-      const finalExcerpt = excerpt.trim() || generateExcerpt(plainText)
+      const finalExcerpt = excerpt.trim() || extractFirstParagraph(content)
       await supabase.from('posts').update({
         title: title.trim(), content, excerpt: finalExcerpt,
         tags: tags.filter(Boolean), published, pinned,
@@ -108,32 +115,26 @@ export default function EditPostPage() {
     el.style.height = el.scrollHeight + 'px'
   }, [title])
 
-  const handleSave = async (modalData: ModalData) => {
+  const handleSave = async () => {
     if (!title.trim()) { toast.error('El título es obligatorio.'); return }
     setSaving(true)
     const supabase = createClient()
-    const plainText = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
-    const finalExcerpt = modalData.excerpt.trim() || generateExcerpt(plainText)
+    const finalExcerpt = excerpt.trim() || extractFirstParagraph(content)
     const { error: err } = await supabase.from('posts').update({
       title: title.trim(),
       content,
       excerpt: finalExcerpt,
-      tags: modalData.tags.filter(Boolean),
-      published: modalData.published,
-      pinned: modalData.pinned,
+      tags: tags.filter(Boolean),
+      published,
+      pinned,
       cover_image_url: coverImageUrl || null,
       updated_at: new Date().toISOString(),
     }).eq('id', postId)
     if (err) {
       toast.error(err.message)
     } else {
-      setExcerpt(modalData.excerpt)
-      setTags(modalData.tags)
-      setPublished(modalData.published)
-      setPinned(modalData.pinned)
-      setShowModal(false)
       setSaved(true)
-      toast.success(modalData.published ? 'Post publicado' : 'Cambios guardados')
+      toast.success(published ? 'Post publicado' : 'Cambios guardados')
       setTimeout(() => setSaved(false), 2500)
     }
     setSaving(false)
@@ -159,7 +160,7 @@ export default function EditPostPage() {
       const ext = file.name.split('.').pop() ?? 'jpg'
       const filePath = `${user.id}/${Date.now()}.${ext}`
       const { error } = await supabase.storage.from('covers').upload(filePath, file, { upsert: true })
-      if (error) { console.error('Cover upload error:', error); toast.error(error.message); return }
+      if (error) { toast.error(error.message); return }
       const { data: { publicUrl } } = supabase.storage.from('covers').getPublicUrl(filePath)
       setCoverImageUrl(publicUrl)
       e.target.value = ''
@@ -237,20 +238,25 @@ export default function EditPostPage() {
               )}
             </button>
             <button
-              onClick={() => setShowModal(true)}
+              onClick={() => setShowSettings(true)}
+              className="text-sm px-2.5 py-1.5 rounded border transition-colors hover:bg-[var(--bg-hover)] relative"
+              style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+              title="Ajustes del post"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="6" y1="18" x2="18" y2="18"/>
+              </svg>
+              {published && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ background: '#28c840' }} />
+              )}
+            </button>
+            <button
+              onClick={handleSave}
               disabled={saving}
               className="text-sm font-medium px-4 py-1.5 rounded hover:opacity-90 disabled:opacity-50"
               style={{ background: saved ? '#3a7a52' : 'var(--text)', color: 'var(--bg)' }}
             >
-              {saved ? '✓ Guardado' : 'Guardar'}
-            </button>
-            <button
-              onClick={handleDelete}
-              disabled={deleting}
-              className="text-sm px-3 py-1.5 rounded border transition-colors hover:bg-red-50 disabled:opacity-50"
-              style={{ borderColor: 'var(--border)', color: '#e03e3e' }}
-            >
-              {deleting ? '…' : 'Eliminar'}
+              {saving ? 'Guardando…' : saved ? '✓ Guardado' : 'Guardar'}
             </button>
           </div>
         </div>
@@ -289,15 +295,19 @@ export default function EditPostPage() {
         </div>
       </div>
 
-      {showModal && (
-        <PublishModal
-          initialExcerpt={excerpt}
-          initialTags={tags}
-          initialPinned={pinned}
-          initialPublished={published}
-          saving={saving}
-          onClose={() => setShowModal(false)}
-          onConfirm={handleSave}
+      {showSettings && (
+        <PostSettingsPanel
+          excerpt={excerpt}
+          tags={tags}
+          published={published}
+          pinned={pinned}
+          onExcerptChange={setExcerpt}
+          onTagsChange={setTags}
+          onPublishedChange={setPublished}
+          onPinnedChange={setPinned}
+          onClose={() => setShowSettings(false)}
+          onDelete={handleDelete}
+          deleting={deleting}
         />
       )}
     </div>
