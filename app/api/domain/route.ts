@@ -17,7 +17,7 @@ function vercelHeaders() {
 }
 
 const VERCEL_API = 'https://api.vercel.com'
-const PROJECT_ID = process.env.VERCEL_PROJECT_ID
+const PROJECT_ID = process.env.VERCEL_PROJECT_ID ?? process.env.VERCEL_PROJECT_NAME
 
 export async function POST(request: Request) {
   const supabase = createClient()
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ ok: false, error: 'No autorizado' }, { status: 401 })
 
   if (!process.env.VERCEL_TOKEN || !PROJECT_ID) {
-    return NextResponse.json({ ok: false, error: 'Configuración de servidor incompleta' }, { status: 500 })
+    return NextResponse.json({ ok: false, error: 'Configuración de servidor incompleta: falta VERCEL_TOKEN o VERCEL_PROJECT_NAME' }, { status: 500 })
   }
 
   const body = await request.json()
