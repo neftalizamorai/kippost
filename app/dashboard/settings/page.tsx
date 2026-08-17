@@ -125,6 +125,7 @@ export default function SettingsPage() {
   const [social, setSocial] = useState<SocialLinks>({})
   const [template, setTemplate] = useState('minimal')
   const [templateConfig, setTemplateConfig] = useState<Record<string, Record<string, string>>>({})
+  const [savedDomain, setSavedDomain] = useState('')
   const [customDomain, setCustomDomain] = useState('')
   const [domainConnecting, setDomainConnecting] = useState(false)
   const [dnsRecords, setDnsRecords] = useState<{ type: string; domain: string; value: string }[]>([])
@@ -155,6 +156,7 @@ export default function SettingsPage() {
         setSocial(data.social_links || {})
         setTemplate(data.template || 'minimal')
         setTemplateConfig(data.template_config || {})
+        setSavedDomain(data.custom_domain ?? '')
         setCustomDomain(data.custom_domain ?? '')
       }
       setLoading(false)
@@ -207,6 +209,7 @@ export default function SettingsPage() {
       })
       const data = await res.json()
       if (data.ok) {
+        setSavedDomain(domain)
         setCustomDomain(domain)
         setDnsRecords(data.verification ?? [])
         toast.success('Dominio conectado')
@@ -225,6 +228,7 @@ export default function SettingsPage() {
       const res = await fetch('/api/domain', { method: 'DELETE' })
       const data = await res.json()
       if (data.ok) {
+        setSavedDomain('')
         setCustomDomain('')
         setDnsRecords([])
         toast.success('Dominio desconectado')
@@ -524,7 +528,7 @@ export default function SettingsPage() {
             Usa tu propio dominio como la cara pública de tu cuenta en lugar de /@{username}.
           </p>
 
-          {customDomain ? (
+          {savedDomain ? (
             <div className="space-y-3">
               <div
                 className="flex items-center justify-between px-3 py-2 rounded border"
@@ -532,7 +536,7 @@ export default function SettingsPage() {
               >
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#28c840' }} />
-                  <span className="text-sm font-mono" style={{ color: 'var(--text)' }}>{customDomain}</span>
+                  <span className="text-sm font-mono" style={{ color: 'var(--text)' }}>{savedDomain}</span>
                 </div>
                 <button
                   type="button"
