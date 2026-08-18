@@ -9,6 +9,8 @@ import dynamic from 'next/dynamic'
 import { toast } from 'sonner'
 import { useFocusMode } from '@/contexts/FocusContext'
 import PostSettingsPanel from '@/components/PostSettingsPanel'
+import CoverImageEditor from '@/components/CoverImageEditor'
+import { type CoverOptions, coverStyle } from '@/lib/coverOptions'
 
 const BlockNoteEditor = dynamic(() => import('@/components/BlockNoteEditor'), { ssr: false })
 
@@ -37,6 +39,8 @@ export default function NewPostPage() {
   const [uploading, setUploading] = useState(false)
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
   const [showSettings, setShowSettings] = useState(false)
+  const [showCoverEditor, setShowCoverEditor] = useState(false)
+  const [coverOptions, setCoverOptions] = useState<CoverOptions>({})
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>()
   const autoSaveRef = useRef<ReturnType<typeof setInterval>>()
   const draftIdRef = useRef<string | null>(null)
@@ -57,6 +61,7 @@ export default function NewPostPage() {
           setTags(draft.tags || [])
           setPinned(draft.pinned || false)
           setCoverImageUrl(draft.coverImageUrl || '')
+          setCoverOptions(draft.coverOptions || {})
         }
       }
     } catch {}
@@ -77,7 +82,7 @@ export default function NewPostPage() {
     clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
       try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, content, excerpt, tags, pinned, coverImageUrl }))
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, content, excerpt, tags, pinned, coverImageUrl, coverOptions }))
       } catch {}
     }, 2000)
     return () => clearTimeout(saveTimerRef.current)
@@ -96,6 +101,7 @@ export default function NewPostPage() {
         await supabase.from('posts').update({
           title: title.trim(), content, excerpt: finalExcerpt,
           tags: tags.filter(Boolean), cover_image_url: coverImageUrl || null,
+          cover_image_options: coverOptions,
           updated_at: new Date().toISOString(),
         }).eq('id', draftIdRef.current)
       } else {
@@ -104,6 +110,7 @@ export default function NewPostPage() {
           excerpt: finalExcerpt, tags: tags.filter(Boolean),
           published: false, slug: slugify(title) + '-' + Date.now().toString(36),
           cover_image_url: coverImageUrl || null,
+          cover_image_options: coverOptions,
         }).select('id').single()
         if (data) draftIdRef.current = data.id
       }
@@ -111,7 +118,7 @@ export default function NewPostPage() {
       setTimeout(() => setAutoSaveStatus('idle'), 3000)
     }, 30000)
     return () => clearInterval(autoSaveRef.current)
-  }, [title, content, excerpt, tags, coverImageUrl, initialized])
+  }, [title, content, excerpt, tags, coverImageUrl, coverOptions, initialized])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -139,6 +146,7 @@ export default function NewPostPage() {
       pinned,
       slug,
       cover_image_url: coverImageUrl || null,
+      cover_image_options: coverOptions,
     }
     if (draftIdRef.current) {
       const { error: err } = await supabase.from('posts').update({
@@ -174,7 +182,18 @@ export default function NewPostPage() {
       if (error) { toast.error(error.message); return }
       const { data: { publicUrl } } = supabase.storage.from('covers').getPublicUrl(filePath)
       setCoverImageUrl(publicUrl)
+      setCoverOptions({})
       e.target.value = ''
+      // Resolution check
+      const img = new window.Image()
+      img.onload = () => {
+        if (img.naturalWidth < 1200) {
+          toast.warning('Resolución baja — recomendamos 1600 × 840 px o más')
+        } else if (img.naturalWidth < 1600) {
+          toast('Resolución aceptable — 1600 × 840 px sería ideal')
+        }
+      }
+      img.src = publicUrl
     } finally {
       setUploading(false)
     }
@@ -186,13 +205,16 @@ export default function NewPostPage() {
 
       {coverImageUrl && (
         <div className="relative group/cover w-full overflow-hidden" style={{ height: '280px' }}>
-          <img src={coverImageUrl} alt="" className="w-full h-full object-cover" />
+          <img src={coverImageUrl} alt="" className="w-full h-full object-cover" style={coverStyle(coverOptions)} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent opacity-0 group-hover/cover:opacity-100 transition-opacity" />
           <div className="absolute bottom-3 right-5 flex gap-2 opacity-0 group-hover/cover:opacity-100 transition-opacity">
+            <button type="button" onClick={() => setShowCoverEditor(true)} className="text-xs px-3 py-1.5 rounded font-medium shadow-sm hover:bg-white transition-colors" style={{ background: 'rgba(255,255,255,0.9)', color: '#374151' }}>
+              Editar
+            </button>
             <label htmlFor="cover-upload-new" className="cursor-pointer text-xs px-3 py-1.5 rounded font-medium shadow-sm transition-colors hover:bg-white" style={{ background: 'rgba(255,255,255,0.9)', color: '#374151' }}>
-              {uploading ? 'Subiendo…' : 'Cambiar portada'}
+              {uploading ? 'Subiendo…' : 'Cambiar'}
             </label>
-            <button type="button" onClick={() => setCoverImageUrl('')} className="text-xs px-3 py-1.5 rounded font-medium shadow-sm hover:bg-white transition-colors" style={{ background: 'rgba(255,255,255,0.9)', color: '#374151' }}>
+            <button type="button" onClick={() => { setCoverImageUrl(''); setCoverOptions({}) }} className="text-xs px-3 py-1.5 rounded font-medium shadow-sm hover:bg-white transition-colors" style={{ background: 'rgba(255,255,255,0.9)', color: '#374151' }}>
               Eliminar
             </button>
           </div>
@@ -300,6 +322,14 @@ export default function NewPostPage() {
           onPublishedChange={setPublished}
           onPinnedChange={setPinned}
           onClose={() => setShowSettings(false)}
+        />
+      )}
+      {showCoverEditor && coverImageUrl && (
+        <CoverImageEditor
+          src={coverImageUrl}
+          options={coverOptions}
+          onChange={setCoverOptions}
+          onClose={() => setShowCoverEditor(false)}
         />
       )}
     </div>

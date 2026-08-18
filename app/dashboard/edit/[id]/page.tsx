@@ -8,6 +8,8 @@ import dynamic from 'next/dynamic'
 import { toast } from 'sonner'
 import { useFocusMode } from '@/contexts/FocusContext'
 import PostSettingsPanel from '@/components/PostSettingsPanel'
+import CoverImageEditor from '@/components/CoverImageEditor'
+import { type CoverOptions, coverStyle } from '@/lib/coverOptions'
 
 const BlockNoteEditor = dynamic(() => import('@/components/BlockNoteEditor'), { ssr: false })
 
@@ -52,6 +54,8 @@ export default function EditPostPage() {
   const [loading, setLoading] = useState(true)
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
   const [showSettings, setShowSettings] = useState(false)
+  const [showCoverEditor, setShowCoverEditor] = useState(false)
+  const [coverOptions, setCoverOptions] = useState<CoverOptions>({})
   const autoSaveRef = useRef<ReturnType<typeof setInterval>>()
   const titleRef = useRef<HTMLTextAreaElement>(null)
   const router = useRouter()
@@ -69,6 +73,7 @@ export default function EditPostPage() {
         setPublished(data.published)
         setPinned(data.pinned ?? false)
         setCoverImageUrl(data.cover_image_url || '')
+        setCoverOptions(data.cover_image_options ?? {})
         let contentToLoad = data.content || ''
         if (contentToLoad && !contentToLoad.trimStart().startsWith('<') && !contentToLoad.trimStart().startsWith('[')) {
           const { marked } = await import('marked')
@@ -92,13 +97,14 @@ export default function EditPostPage() {
         title: title.trim(), content, excerpt: finalExcerpt,
         tags: tags.filter(Boolean), published, pinned,
         cover_image_url: coverImageUrl || null,
+        cover_image_options: coverOptions,
         updated_at: new Date().toISOString(),
       }).eq('id', postId)
       setAutoSaveStatus('saved')
       setTimeout(() => setAutoSaveStatus('idle'), 3000)
     }, 30000)
     return () => clearInterval(autoSaveRef.current)
-  }, [title, content, excerpt, tags, published, pinned, coverImageUrl, loading, postId])
+  }, [title, content, excerpt, tags, published, pinned, coverImageUrl, coverOptions, loading, postId])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -128,6 +134,7 @@ export default function EditPostPage() {
       published,
       pinned,
       cover_image_url: coverImageUrl || null,
+      cover_image_options: coverOptions,
       updated_at: new Date().toISOString(),
     }).eq('id', postId)
     if (err) {
@@ -163,7 +170,18 @@ export default function EditPostPage() {
       if (error) { toast.error(error.message); return }
       const { data: { publicUrl } } = supabase.storage.from('covers').getPublicUrl(filePath)
       setCoverImageUrl(publicUrl)
+      setCoverOptions({})
       e.target.value = ''
+      // Resolution check
+      const img = new window.Image()
+      img.onload = () => {
+        if (img.naturalWidth < 1200) {
+          toast.warning('Resolución baja — recomendamos 1600 × 840 px o más')
+        } else if (img.naturalWidth < 1600) {
+          toast('Resolución aceptable — 1600 × 840 px sería ideal')
+        }
+      }
+      img.src = publicUrl
     } finally {
       setUploading(false)
     }
@@ -192,13 +210,16 @@ export default function EditPostPage() {
 
       {coverImageUrl && (
         <div className="relative group/cover w-full overflow-hidden" style={{ height: '280px' }}>
-          <img src={coverImageUrl} alt="" className="w-full h-full object-cover" />
+          <img src={coverImageUrl} alt="" className="w-full h-full object-cover" style={coverStyle(coverOptions)} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent opacity-0 group-hover/cover:opacity-100 transition-opacity" />
           <div className="absolute bottom-3 right-5 flex gap-2 opacity-0 group-hover/cover:opacity-100 transition-opacity">
+            <button type="button" onClick={() => setShowCoverEditor(true)} className="text-xs px-3 py-1.5 rounded font-medium shadow-sm hover:bg-white transition-colors" style={{ background: 'rgba(255,255,255,0.9)', color: '#374151' }}>
+              Editar
+            </button>
             <label htmlFor="cover-upload-edit" className="cursor-pointer text-xs px-3 py-1.5 rounded font-medium shadow-sm transition-colors hover:bg-white" style={{ background: 'rgba(255,255,255,0.9)', color: '#374151' }}>
-              {uploading ? 'Subiendo…' : 'Cambiar portada'}
+              {uploading ? 'Subiendo…' : 'Cambiar'}
             </label>
-            <button type="button" onClick={() => setCoverImageUrl('')} className="text-xs px-3 py-1.5 rounded font-medium shadow-sm hover:bg-white transition-colors" style={{ background: 'rgba(255,255,255,0.9)', color: '#374151' }}>
+            <button type="button" onClick={() => { setCoverImageUrl(''); setCoverOptions({}) }} className="text-xs px-3 py-1.5 rounded font-medium shadow-sm hover:bg-white transition-colors" style={{ background: 'rgba(255,255,255,0.9)', color: '#374151' }}>
               Eliminar
             </button>
           </div>
@@ -308,6 +329,14 @@ export default function EditPostPage() {
           onClose={() => setShowSettings(false)}
           onDelete={handleDelete}
           deleting={deleting}
+        />
+      )}
+      {showCoverEditor && coverImageUrl && (
+        <CoverImageEditor
+          src={coverImageUrl}
+          options={coverOptions}
+          onChange={setCoverOptions}
+          onClose={() => setShowCoverEditor(false)}
         />
       )}
     </div>
