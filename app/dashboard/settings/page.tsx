@@ -285,6 +285,8 @@ export default function SettingsPage() {
     )
   }
 
+  const domainValid = /^[a-z0-9.-]+\.[a-z]{2,}$/.test(sanitizeDomain(customDomain))
+
   return (
     <div className="max-w-lg mx-auto px-8 py-10">
       <h1 className="text-xl font-bold mb-1" style={{ color: 'var(--text)' }}>Perfil</h1>
@@ -533,9 +535,8 @@ export default function SettingsPage() {
         </button>
       </form>
 
-      {/* Custom domain — intentionally outside <form> so Enter/submit can't interfere */}
-      <div className="pt-6 mt-6" style={{ borderTop: '1px solid var(--border)' }}
-      >
+      {/* Custom domain — outside <form> */}
+      <div className="pt-6 mt-6" style={{ borderTop: '1px solid var(--border)' }}>
         <p className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>Dominio personalizado</p>
         <p className="text-xs mb-4" style={{ color: 'var(--text-tertiary)' }}>
           Usa tu propio dominio como la cara pública de tu cuenta en lugar de /@{username}.
@@ -566,8 +567,7 @@ export default function SettingsPage() {
                 <div className="px-3 py-2 font-medium" style={{ color: 'var(--text-secondary)', borderBottom: '1px solid var(--border)' }}>
                   Configura estos registros DNS en tu registrador de dominios:
                 </div>
-                <div className="divide-y" style={{ borderColor: 'var(--border)' }}
-                >
+                <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
                   {dnsRecords.map((rec, i) => (
                     <div key={i} className="px-3 py-2 grid grid-cols-3 gap-2 font-mono" style={{ color: 'var(--text-secondary)' }}>
                       <span style={{ color: 'var(--text-tertiary)' }}>{rec.type}</span>
@@ -593,16 +593,18 @@ export default function SettingsPage() {
               <input
                 type="text"
                 value={customDomain}
-                onChange={e => setCustomDomain(e.target.value)}
-                onBlur={e => setCustomDomain(sanitizeDomain(e.target.value))}
+                onChange={e => setCustomDomain(e.target.value.toLowerCase().replace(/\s/g, ''))}
                 placeholder="midominio.com"
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
                 className="flex-1 px-3 py-2 text-sm rounded border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
                 style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
               />
               <button
                 type="button"
                 onClick={handleDomainConnect}
-                disabled={domainConnecting || !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(sanitizeDomain(customDomain))}
+                disabled={domainConnecting || !domainValid}
                 className="text-sm px-4 py-2 rounded font-medium hover:opacity-90 disabled:opacity-40 transition-opacity"
                 style={{ background: 'var(--text)', color: 'var(--bg)' }}
               >
