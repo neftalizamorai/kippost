@@ -125,6 +125,7 @@ export default function SettingsPage() {
   const [social, setSocial] = useState<SocialLinks>({})
   const [template, setTemplate] = useState('minimal')
   const [templateConfig, setTemplateConfig] = useState<Record<string, Record<string, string>>>({})
+  const [savedDomain, setSavedDomain] = useState('')
   const [customDomain, setCustomDomain] = useState('')
   const [domainConnecting, setDomainConnecting] = useState(false)
   const [dnsRecords, setDnsRecords] = useState<{ type: string; domain: string; value: string }[]>([])
@@ -155,6 +156,7 @@ export default function SettingsPage() {
         setSocial(data.social_links || {})
         setTemplate(data.template || 'minimal')
         setTemplateConfig(data.template_config || {})
+        setSavedDomain(data.custom_domain ?? '')
         setCustomDomain(data.custom_domain ?? '')
       }
       setLoading(false)
@@ -188,7 +190,6 @@ export default function SettingsPage() {
       toast.error(error.message)
     } else {
       const { data } = supabase.storage.from('avatars').getPublicUrl(path)
-      // Cache-bust so the browser loads the new image
       setAvatarUrl(`${data.publicUrl}?t=${Date.now()}`)
       toast.success('Foto actualizada')
     }
@@ -197,7 +198,10 @@ export default function SettingsPage() {
 
   const handleDomainConnect = async () => {
     const domain = sanitizeDomain(customDomain)
-    if (!domain) return
+    if (!domain || !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(domain)) {
+      toast.error('Ingresa un dominio válido, ej: midominio.com')
+      return
+    }
     setDomainConnecting(true)
     try {
       const res = await fetch('/api/domain', {
@@ -207,6 +211,7 @@ export default function SettingsPage() {
       })
       const data = await res.json()
       if (data.ok) {
+        setSavedDomain(domain)
         setCustomDomain(domain)
         setDnsRecords(data.verification ?? [])
         toast.success('Dominio conectado')
@@ -225,6 +230,7 @@ export default function SettingsPage() {
       const res = await fetch('/api/domain', { method: 'DELETE' })
       const data = await res.json()
       if (data.ok) {
+        setSavedDomain('')
         setCustomDomain('')
         setDnsRecords([])
         toast.success('Dominio desconectado')
@@ -517,87 +523,6 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* Custom domain */}
-        <div className="pt-2">
-          <p className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>Dominio personalizado</p>
-          <p className="text-xs mb-4" style={{ color: 'var(--text-tertiary)' }}>
-            Usa tu propio dominio como la cara pública de tu cuenta en lugar de /@{username}.
-          </p>
-
-          {customDomain ? (
-            <div className="space-y-3">
-              <div
-                className="flex items-center justify-between px-3 py-2 rounded border"
-                style={{ borderColor: 'var(--border)', background: 'var(--bg-secondary)' }}
-              >
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#28c840' }} />
-                  <span className="text-sm font-mono" style={{ color: 'var(--text)' }}>{customDomain}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleDomainDisconnect}
-                  disabled={domainConnecting}
-                  className="text-xs hover:underline disabled:opacity-50"
-                  style={{ color: 'var(--text-tertiary)' }}
-                >
-                  {domainConnecting ? 'Desconectando...' : 'Desconectar'}
-                </button>
-              </div>
-              {dnsRecords.length > 0 && (
-                <div className="rounded border text-xs" style={{ borderColor: 'var(--border)' }}>
-                  <div className="px-3 py-2 font-medium" style={{ color: 'var(--text-secondary)', borderBottom: '1px solid var(--border)' }}>
-                    Configura estos registros DNS en tu registrador de dominios:
-                  </div>
-                  <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
-                    {dnsRecords.map((rec, i) => (
-                      <div key={i} className="px-3 py-2 grid grid-cols-3 gap-2 font-mono" style={{ color: 'var(--text-secondary)' }}>
-                        <span style={{ color: 'var(--text-tertiary)' }}>{rec.type}</span>
-                        <span>{rec.domain}</span>
-                        <span style={{ color: 'var(--text)' }}>{rec.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="px-3 py-2" style={{ color: 'var(--text-tertiary)', borderTop: '1px solid var(--border)' }}>
-                    La propagación DNS puede tardar hasta 48 horas.
-                  </div>
-                </div>
-              )}
-              {dnsRecords.length === 0 && (
-                <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                  Dominio activo. Asegúrate de que el DNS apunta a tu hosting.
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={customDomain}
-                  onChange={e => setCustomDomain(e.target.value)}
-                  onBlur={e => setCustomDomain(sanitizeDomain(e.target.value))}
-                  placeholder="midominio.com"
-                  className="flex-1 px-3 py-2 text-sm rounded border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
-                  style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                />
-                <button
-                  type="button"
-                  onClick={handleDomainConnect}
-                  disabled={domainConnecting || !customDomain.trim()}
-                  className="text-sm px-4 py-2 rounded font-medium hover:opacity-90 disabled:opacity-40 transition-opacity"
-                  style={{ background: 'var(--text)', color: 'var(--bg)' }}
-                >
-                  {domainConnecting ? 'Conectando...' : 'Conectar'}
-                </button>
-              </div>
-              <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                Solo el dominio, sin https:// ni www. Ej: <span className="font-mono">midominio.com</span>
-              </p>
-            </div>
-          )}
-        </div>
-
         <button
           type="submit"
           disabled={saving}
@@ -607,6 +532,89 @@ export default function SettingsPage() {
           {saving ? 'Guardando...' : 'Guardar cambios'}
         </button>
       </form>
+
+      {/* Custom domain — intentionally outside <form> so Enter/submit can't interfere */}
+      <div className="pt-6 mt-6" style={{ borderTop: '1px solid var(--border)' }}
+      >
+        <p className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>Dominio personalizado</p>
+        <p className="text-xs mb-4" style={{ color: 'var(--text-tertiary)' }}>
+          Usa tu propio dominio como la cara pública de tu cuenta en lugar de /@{username}.
+        </p>
+
+        {savedDomain ? (
+          <div className="space-y-3">
+            <div
+              className="flex items-center justify-between px-3 py-2 rounded border"
+              style={{ borderColor: 'var(--border)', background: 'var(--bg-secondary)' }}
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#28c840' }} />
+                <span className="text-sm font-mono" style={{ color: 'var(--text)' }}>{savedDomain}</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleDomainDisconnect}
+                disabled={domainConnecting}
+                className="text-xs hover:underline disabled:opacity-50"
+                style={{ color: 'var(--text-tertiary)' }}
+              >
+                {domainConnecting ? 'Desconectando...' : 'Desconectar'}
+              </button>
+            </div>
+            {dnsRecords.length > 0 && (
+              <div className="rounded border text-xs" style={{ borderColor: 'var(--border)' }}>
+                <div className="px-3 py-2 font-medium" style={{ color: 'var(--text-secondary)', borderBottom: '1px solid var(--border)' }}>
+                  Configura estos registros DNS en tu registrador de dominios:
+                </div>
+                <div className="divide-y" style={{ borderColor: 'var(--border)' }}
+                >
+                  {dnsRecords.map((rec, i) => (
+                    <div key={i} className="px-3 py-2 grid grid-cols-3 gap-2 font-mono" style={{ color: 'var(--text-secondary)' }}>
+                      <span style={{ color: 'var(--text-tertiary)' }}>{rec.type}</span>
+                      <span>{rec.domain}</span>
+                      <span style={{ color: 'var(--text)' }}>{rec.value}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="px-3 py-2" style={{ color: 'var(--text-tertiary)', borderTop: '1px solid var(--border)' }}>
+                  La propagación DNS puede tardar hasta 48 horas.
+                </div>
+              </div>
+            )}
+            {dnsRecords.length === 0 && (
+              <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                Dominio activo. Configura el DNS de tu registrador para que apunte a Vercel.
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={customDomain}
+                onChange={e => setCustomDomain(e.target.value)}
+                onBlur={e => setCustomDomain(sanitizeDomain(e.target.value))}
+                placeholder="midominio.com"
+                className="flex-1 px-3 py-2 text-sm rounded border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
+                style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+              />
+              <button
+                type="button"
+                onClick={handleDomainConnect}
+                disabled={domainConnecting || !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(sanitizeDomain(customDomain))}
+                className="text-sm px-4 py-2 rounded font-medium hover:opacity-90 disabled:opacity-40 transition-opacity"
+                style={{ background: 'var(--text)', color: 'var(--bg)' }}
+              >
+                {domainConnecting ? 'Conectando...' : 'Conectar'}
+              </button>
+            </div>
+            <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+              Solo el dominio, sin https:// ni www. Ej: <span className="font-mono">midominio.com</span>
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
