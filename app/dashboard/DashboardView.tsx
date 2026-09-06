@@ -143,28 +143,13 @@ function PostCard({ post, username, views }: { post: Post; username: string; vie
 }
 
 function PostRow({ post, username, last, views }: { post: Post; username: string; last: boolean; views?: number }) {
-  const cover = post.cover_image_url ?? extractCover(post.content)
-
   return (
     <div
-      className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-[var(--bg-hover)]"
+      className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-[var(--bg-hover)]"
       style={{ borderBottom: last ? 'none' : '1px solid var(--border)' }}
     >
-      <div className="flex-shrink-0 w-16 h-12 rounded overflow-hidden" style={{ border: '1px solid var(--border)' }}>
-        {cover ? (
-          <img src={cover} alt="" className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--bg-secondary)' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-tertiary)' }}>
-              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
-              <polyline points="21 15 16 10 5 21"/>
-            </svg>
-          </div>
-        )}
-      </div>
-
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+        <div className="flex items-baseline gap-2 mb-1">
           <Link
             href={`/dashboard/edit/${post.id}`}
             className="text-sm font-medium leading-snug hover:underline truncate"
@@ -172,64 +157,47 @@ function PostRow({ post, username, last, views }: { post: Post; username: string
           >
             {post.title}
           </Link>
-          <StatusBadge published={post.published} />
-          {post.pinned && (
-            <span title="Anclado en navegación">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="0" style={{ color: 'var(--text-tertiary)' }}>
-                <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/>
-              </svg>
+          {!post.published && (
+            <span
+              className="inline-flex items-center text-xs px-1.5 py-0.5 rounded font-medium flex-shrink-0"
+              style={{ background: 'rgba(251,188,4,0.12)', color: '#8a6500' }}
+            >
+              borrador
             </span>
           )}
         </div>
-        <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-          {formatDateShort(post.created_at)} · {readingTime(post.content)} min
-          {(views ?? 0) > 0 && (
-            <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-              {' '}· {views} vis.
-            </span>
-          )}
-        </p>
-        {post.tags && post.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1.5">
-            {post.tags.slice(0, 4).map(tag => (
-              <span
-                key={tag}
-                className="text-xs px-1.5 py-0.5 rounded"
-                style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
+        {post.excerpt && (
+          <p className="text-xs leading-relaxed line-clamp-1" style={{ color: 'var(--text-secondary)' }}>
+            {post.excerpt}
+          </p>
         )}
       </div>
 
-      <div className="flex items-center gap-0.5 flex-shrink-0">
+      <div className="flex items-center gap-4 flex-shrink-0">
+        {(views ?? 0) > 0 && (
+          <span className="text-xs hidden sm:block" style={{ color: 'var(--text-tertiary)', minWidth: '60px', textAlign: 'right' }}>
+            {views} vis.
+          </span>
+        )}
+        <span className="text-xs" style={{ color: 'var(--text-tertiary)', minWidth: '56px', textAlign: 'right' }}>
+          {formatDateShort(post.created_at)}
+        </span>
         {post.published && (
           <a
             href={`/@${username}/${post.slug}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-8 h-8 flex items-center justify-center rounded transition-colors hover:bg-[var(--bg-hover)]"
+            className="w-7 h-7 flex items-center justify-center rounded transition-colors hover:bg-[var(--bg-secondary)]"
             style={{ color: 'var(--text-tertiary)' }}
             title="Ver post"
+            onClick={e => e.stopPropagation()}
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
               <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
             </svg>
           </a>
         )}
-        <Link
-          href={`/dashboard/edit/${post.id}`}
-          className="w-8 h-8 flex items-center justify-center rounded transition-colors hover:bg-[var(--bg-hover)]"
-          style={{ color: 'var(--text-tertiary)' }}
-          title="Editar"
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
-          </svg>
-        </Link>
       </div>
     </div>
   )
@@ -325,10 +293,7 @@ export default function DashboardView({ posts, username, name, viewMap }: Omit<P
     <div className="w-full px-4 sm:px-8 py-6 sm:py-8 max-w-5xl">
       <div className="flex items-start justify-between mb-5">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold mb-0.5" style={{ color: 'var(--text)' }}>Posts</h1>
-          <p className="text-sm hidden sm:block" style={{ color: 'var(--text-secondary)' }}>
-            Organiza, planea y publica tu contenido.
-          </p>
+          <h1 className="text-xl sm:text-2xl font-bold" style={{ color: 'var(--text)' }}>Posts</h1>
         </div>
         {/* Crear button — top right on mobile */}
         <Link
