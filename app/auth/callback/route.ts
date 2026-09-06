@@ -27,15 +27,49 @@ export async function GET(request: Request) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error && data.user) {
-      // Create profile if it doesn't exist yet
       const meta = data.user.user_metadata
+
       if (meta?.username) {
+        // Email/password signup — username passed explicitly in signUp options
         await supabase.from('profiles').upsert({
           id: data.user.id,
           username: meta.username,
           name: meta.name || meta.username,
         })
+      } else {
+        // OAuth provider (Google, etc.) — ensure profile exists
+        const { data: existing } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', data.user.id)
+          .maybeSingle()
+
+        if (!existing) {
+          // First OAuth login — generate username from Google name/email
+          const rawName = (meta?.full_name || meta?.name || '').trim()
+          const emailPrefix = (data.user.email || '').split('@')[0]
+          const base = (rawName || emailPrefix)
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, '')
+            .slice(0, 28) || 'user'
+
+          let username = base
+          for (let i = 1; i <= 99; i++) {
+            const { data: taken } = await supabase
+              .from('profiles').select('id').eq('username', username).maybeSingle()
+            if (!taken) break
+            username = `${base}${i}`
+          }
+
+          await supabase.from('profiles').insert({
+            id: data.user.id,
+            username,
+            name: rawName || emailPrefix,
+            avatar_url: meta?.avatar_url || null,
+          })
+        }
       }
+
       return NextResponse.redirect(`${origin}${next}`)
     }
   }

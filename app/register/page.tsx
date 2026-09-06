@@ -6,6 +6,17 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ThemeToggle } from '@/components/ThemeToggle'
 
+function GoogleIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+      <path d="M17.64 9.2a10.34 10.34 0 0 0-.16-1.84H9v3.48h4.84A4.14 4.14 0 0 1 12.07 13v2.26h2.88a8.68 8.68 0 0 0 2.69-6.06z" fill="#4285F4"/>
+      <path d="M9 18a8.59 8.59 0 0 0 5.96-2.18l-2.88-2.26a5.4 5.4 0 0 1-8.08-2.85H1.06v2.34A9 9 0 0 0 9 18z" fill="#34A853"/>
+      <path d="M3.96 10.71A5.41 5.41 0 0 1 3.68 9c0-.59.1-1.17.28-1.71V4.95H1.06A9 9 0 0 0 0 9a9 9 0 0 0 1.06 4.05l2.9-2.34z" fill="#FBBC05"/>
+      <path d="M9 3.58a4.86 4.86 0 0 1 3.44 1.35l2.58-2.58A8.64 8.64 0 0 0 9 0 9 9 0 0 0 1.06 4.95l2.9 2.34A5.36 5.36 0 0 1 9 3.58z" fill="#EA4335"/>
+    </svg>
+  )
+}
+
 export default function RegisterPage() {
   const [username, setUsername] = useState('')
   const [name, setName] = useState('')
@@ -13,8 +24,20 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const router = useRouter()
+
+  const handleGoogleRegister = async () => {
+    setGoogleLoading(true)
+    const supabase = createClient()
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,7 +67,6 @@ export default function RegisterPage() {
       return
     }
 
-    // Si el usuario está disponible de inmediato (sin confirmación de email), creamos el perfil
     if (data.user && data.session) {
       const { error: profileError } = await supabase.from('profiles').upsert({
         id: data.user.id,
@@ -61,7 +83,6 @@ export default function RegisterPage() {
       router.push('/dashboard')
       router.refresh()
     } else {
-      // Email confirmation required
       setSuccess(true)
       setLoading(false)
     }
@@ -102,6 +123,24 @@ export default function RegisterPage() {
             Inicia sesión
           </Link>
         </p>
+
+        {/* Google OAuth */}
+        <button
+          type="button"
+          onClick={handleGoogleRegister}
+          disabled={googleLoading}
+          className="w-full flex items-center justify-center gap-2.5 py-2.5 text-sm font-medium rounded border hover:opacity-80 transition-opacity disabled:opacity-50 mb-5"
+          style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+        >
+          <GoogleIcon />
+          {googleLoading ? 'Redirigiendo...' : 'Continuar con Google'}
+        </button>
+
+        <div className="flex items-center gap-3 mb-5">
+          <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+          <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>o con correo</span>
+          <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
