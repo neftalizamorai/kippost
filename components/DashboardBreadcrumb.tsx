@@ -3,9 +3,10 @@
 import { usePathname } from 'next/navigation'
 
 const PAGE_LABELS: Record<string, string> = {
-  '/dashboard': 'Posts',
+  '/dashboard': 'Publicaciones',
   '/dashboard/new': 'Nuevo post',
   '/dashboard/settings': 'Ajustes',
+  '/dashboard/analytics': 'Lectores',
 }
 
 function getLabel(pathname: string): string {

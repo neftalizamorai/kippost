@@ -50,7 +50,7 @@ function DashboardShellInner({ profile, publishedCount, draftCount, siteName, ch
           focusMode
             ? 'hidden'
             : [
-                'w-64',
+                'w-56',
                 open ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
                 sidebarCollapsed ? 'md:w-11' : 'md:w-56',
               ].join(' '),
@@ -74,7 +74,7 @@ function DashboardShellInner({ profile, publishedCount, draftCount, siteName, ch
           </div>
         )}
 
-        {/* Full sidebar content — always on mobile, only when expanded on desktop */}
+        {/* Full sidebar content */}
         <div className={`flex flex-col flex-1 overflow-hidden min-h-0 ${sidebarCollapsed ? 'md:hidden' : ''}`}>
           {/* User section */}
           <div className="p-3 flex items-center gap-1" style={{ borderBottom: '1px solid var(--border)' }}>
@@ -83,12 +83,12 @@ function DashboardShellInner({ profile, publishedCount, draftCount, siteName, ch
                 <img
                   src={profile.avatar_url}
                   alt={profile.name}
-                  className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                  className="w-7 h-7 rounded-full object-cover flex-shrink-0"
                   style={{ border: '1px solid var(--border)' }}
                 />
               ) : (
                 <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-semibold"
+                  className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-semibold"
                   style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
                 >
                   {profile?.name?.[0]?.toUpperCase() ?? '?'}
@@ -125,7 +125,7 @@ function DashboardShellInner({ profile, publishedCount, draftCount, siteName, ch
           </div>
 
           {/* Bottom */}
-          <div className="p-4 flex items-center justify-between" style={{ borderTop: '1px solid var(--border)' }}>
+          <div className="p-3 flex items-center justify-between" style={{ borderTop: '1px solid var(--border)' }}>
             <ThemeToggle />
             <LogoutButton />
           </div>
