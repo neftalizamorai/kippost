@@ -5,6 +5,13 @@ import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { formatDateShort, formatMonth, readingTime } from '@/lib/utils'
 
+function safeExcerpt(raw: string | null): string {
+  if (!raw) return ''
+  const trimmed = raw.trim()
+  if (trimmed.startsWith('[') || trimmed.startsWith('{')) return ''
+  return trimmed
+}
+
 interface Post {
   id: string
   title: string
@@ -97,9 +104,9 @@ function PostCard({ post, username, views }: { post: Post; username: string; vie
           ))}
         </div>
 
-        {post.excerpt && (
+        {safeExcerpt(post.excerpt) && (
           <p className="text-xs leading-relaxed line-clamp-3" style={{ color: 'var(--text-secondary)' }}>
-            {post.excerpt}
+            {safeExcerpt(post.excerpt)}
           </p>
         )}
       </div>
@@ -166,9 +173,9 @@ function PostRow({ post, username, last, views }: { post: Post; username: string
             </span>
           )}
         </div>
-        {post.excerpt && (
+        {safeExcerpt(post.excerpt) && (
           <p className="text-xs leading-relaxed line-clamp-1" style={{ color: 'var(--text-secondary)' }}>
-            {post.excerpt}
+            {safeExcerpt(post.excerpt)}
           </p>
         )}
       </div>

@@ -20,7 +20,7 @@ function extractFirstParagraph(contentJson: string): string {
   try {
     const blocks = JSON.parse(contentJson)
     if (!Array.isArray(blocks)) return ''
-    const first = blocks.find((b: any) => b.type === 'paragraph' && b.content?.length > 0)
+    const first = blocks.find((b: any) => Array.isArray(b.content) && b.content.length > 0)
     return first?.content?.map((c: any) => c.text ?? '').join('') ?? ''
   } catch { return '' }
 }
