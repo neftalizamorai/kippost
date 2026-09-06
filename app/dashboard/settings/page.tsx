@@ -540,7 +540,7 @@ export default function SettingsPage() {
         </button>
       </form>
 
-      {/* Custom domain — outside <form> */}
+      {/* Custom domain — outside <form> so Enter/submit can't interfere */}
       <div className="pt-6 mt-6" style={{ borderTop: '1px solid var(--border)' }}>
         <p className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>Dominio personalizado</p>
         <p className="text-xs mb-4" style={{ color: 'var(--text-tertiary)' }}>

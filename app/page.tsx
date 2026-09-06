@@ -83,7 +83,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Footer — brand: Pila SVG + wordmark en gris faint, según Marca doc */}
+      {/* Footer */}
       <footer style={{ marginTop: 'auto', padding: '18px 24px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-tertiary)' }}>
           <svg width="11" height="11" viewBox="0 0 24 24">
