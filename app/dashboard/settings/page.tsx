@@ -213,7 +213,14 @@ export default function SettingsPage() {
       if (data.ok) {
         setSavedDomain(domain)
         setCustomDomain(domain)
-        setDnsRecords(data.verification ?? [])
+        const isApex = domain.split('.').length === 2
+        const staticRecords = isApex
+          ? [
+              { type: 'A', domain: '@', value: '76.76.21.21' },
+              { type: 'CNAME', domain: 'www', value: 'cname.vercel-dns.com' },
+            ]
+          : [{ type: 'CNAME', domain: domain.split('.').slice(0, -2).join('.'), value: 'cname.vercel-dns.com' }]
+        setDnsRecords(staticRecords)
         toast.success('Dominio conectado')
       } else {
         toast.error(data.error ?? 'Error al conectar dominio')
@@ -284,8 +291,6 @@ export default function SettingsPage() {
       </div>
     )
   }
-
-  const domainValid = /^[a-z0-9.-]+\.[a-z]{2,}$/.test(sanitizeDomain(customDomain))
 
   return (
     <div className="max-w-lg mx-auto px-8 py-10">
@@ -583,7 +588,7 @@ export default function SettingsPage() {
             )}
             {dnsRecords.length === 0 && (
               <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                Dominio activo. Configura el DNS de tu registrador para que apunte a Vercel.
+                Dominio registrado en Vercel. Añade un registro A <span className="font-mono">@ → 76.76.21.21</span> y un CNAME <span className="font-mono">www → cname.vercel-dns.com</span> en tu registrador.
               </p>
             )}
           </div>
@@ -593,7 +598,8 @@ export default function SettingsPage() {
               <input
                 type="text"
                 value={customDomain}
-                onChange={e => setCustomDomain(e.target.value.toLowerCase().replace(/\s/g, ''))}
+                onChange={e => setCustomDomain(e.target.value)}
+                onBlur={e => setCustomDomain(sanitizeDomain(e.target.value))}
                 placeholder="midominio.com"
                 autoComplete="off"
                 autoCorrect="off"
@@ -604,7 +610,7 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={handleDomainConnect}
-                disabled={domainConnecting || !domainValid}
+                disabled={domainConnecting || !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(sanitizeDomain(customDomain))}
                 className="text-sm px-4 py-2 rounded font-medium hover:opacity-90 disabled:opacity-40 transition-opacity"
                 style={{ background: 'var(--text)', color: 'var(--bg)' }}
               >
