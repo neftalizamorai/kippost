@@ -214,7 +214,16 @@ export default function SettingsPage() {
       if (data.ok) {
         setSavedDomain(domain)
         setCustomDomain(domain)
-        setDnsRecords(data.verification ?? [])
+        // Always show the DNS records needed to point the domain to Vercel.
+        // verification[] from Vercel is for ownership proof only and may be empty.
+        const isApex = !domain.split('.').slice(0, -2).join('.') || domain.split('.').length === 2
+        const staticRecords = isApex
+          ? [
+              { type: 'A', domain: '@', value: '76.76.21.21' },
+              { type: 'CNAME', domain: 'www', value: 'cname.vercel-dns.com' },
+            ]
+          : [{ type: 'CNAME', domain: domain.split('.')[0], value: 'cname.vercel-dns.com' }]
+        setDnsRecords(staticRecords)
         toast.success('Dominio conectado')
       } else {
         toast.error(data.error ?? 'Error al conectar dominio')
@@ -582,7 +591,7 @@ export default function SettingsPage() {
             )}
             {dnsRecords.length === 0 && (
               <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                Dominio activo. Configura el DNS de tu registrador para que apunte a Vercel.
+                Dominio registrado en Vercel. Asegúrate de que tu DNS tenga un registro A apuntando a <span className="font-mono">76.76.21.21</span> o un CNAME a <span className="font-mono">cname.vercel-dns.com</span>.
               </p>
             )}
           </div>
