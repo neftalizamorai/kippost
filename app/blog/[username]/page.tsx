@@ -166,8 +166,8 @@ export default async function BlogPage({ params }: Props) {
         }}
       >
         <div className="flex items-center gap-4">
-          <Link href="/" className="text-sm font-semibold tracking-tight transition-opacity hover:opacity-70" style={{ color: 'var(--text)' }}>
-            KipPost
+          <Link href={`/@${params.username}`} className="text-sm font-semibold tracking-tight transition-opacity hover:opacity-70" style={{ color: 'var(--text)' }}>
+            {profile.name}
           </Link>
           {pinnedPosts && pinnedPosts.length > 0 && (
             <>
