@@ -34,19 +34,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: 'Dominio inválido' }, { status: 400 })
   }
 
-  // Add domain to Vercel project
-  const vercelRes = await fetch(`${VERCEL_API}/v10/projects/${PROJECT_ID}/domains`, {
-    method: 'POST',
-    headers: vercelHeaders(),
-    body: JSON.stringify({ name: domain }),
-  })
+  const addDomain = async (name: string) =>
+    fetch(`${VERCEL_API}/v10/projects/${PROJECT_ID}/domains`, {
+      method: 'POST',
+      headers: vercelHeaders(),
+      body: JSON.stringify({ name }),
+    })
 
+  // Add apex domain
+  const vercelRes = await addDomain(domain)
   const vercelData = await vercelRes.json()
 
-  // 409 = domain already exists in the project — treat as success
+  // 409 = already exists — treat as success
   if (!vercelRes.ok && vercelRes.status !== 409) {
     const msg = vercelData?.error?.message ?? 'Error al registrar dominio en Vercel'
     return NextResponse.json({ ok: false, error: msg }, { status: 502 })
+  }
+
+  // For apex domains, also add www variant so Vercel provisions SSL for both
+  const isApex = domain.split('.').length === 2
+  if (isApex) {
+    await addDomain(`www.${domain}`)
   }
 
   // Save to Supabase
@@ -87,11 +95,13 @@ export async function DELETE() {
 
   const domain = profile?.custom_domain
   if (domain) {
-    // Remove from Vercel (ignore errors — domain may have already been removed)
-    await fetch(`${VERCEL_API}/v9/projects/${PROJECT_ID}/domains/${encodeURIComponent(domain)}`, {
-      method: 'DELETE',
-      headers: vercelHeaders(),
-    })
+    const removeDomain = (name: string) =>
+      fetch(`${VERCEL_API}/v9/projects/${PROJECT_ID}/domains/${encodeURIComponent(name)}`, {
+        method: 'DELETE',
+        headers: vercelHeaders(),
+      })
+    await removeDomain(domain)
+    if (domain.split('.').length === 2) await removeDomain(`www.${domain}`)
   }
 
   // Clear in Supabase
