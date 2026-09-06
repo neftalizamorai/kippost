@@ -76,14 +76,16 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  // getSession reads the cookie locally — no network round-trip, safe for middleware redirects.
+  // Pages and API routes call getUser() server-side for full token verification.
+  const { data: { session } } = await supabase.auth.getSession()
   const path = request.nextUrl.pathname
 
-  if (!user && path.startsWith('/dashboard')) {
+  if (!session && path.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (user && (path === '/login' || path === '/register')) {
+  if (session && (path === '/login' || path === '/register')) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
