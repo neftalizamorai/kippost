@@ -9,22 +9,21 @@ function hasSession(request: NextRequest): boolean {
 }
 
 export function middleware(request: NextRequest) {
-  // Rewrite /@username/* → /blog/username/*
   const pathname = request.nextUrl.pathname
+
+  // Rewrite /@username/* → /blog/username/*
   if (pathname.startsWith('/@')) {
     const url = request.nextUrl.clone()
     url.pathname = '/blog/' + pathname.slice(2)
     return NextResponse.rewrite(url)
   }
 
-  const loggedIn = hasSession(request)
-
-  if (!loggedIn && pathname.startsWith('/dashboard')) {
+  // Protect /dashboard: redirect to login if no session cookie.
+  // Do NOT redirect /login or /register — would cause a redirect loop
+  // when the session cookie is stale (cookie exists but token is expired;
+  // the dashboard layout calls getUser() and redirects back to /login).
+  if (!hasSession(request) && pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/login', request.url))
-  }
-
-  if (loggedIn && (pathname === '/login' || pathname === '/register')) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
   return NextResponse.next({ request })
