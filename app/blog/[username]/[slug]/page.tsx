@@ -10,6 +10,7 @@ import { TableOfContents } from '@/components/TableOfContents'
 import { ShareButton } from '@/components/ShareButton'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import type { Metadata } from 'next'
+import { coverStyle } from '@/lib/coverOptions'
 
 const ALLOWED_HTML: sanitizeHtml.IOptions = {
   allowedTags: [
@@ -175,6 +176,7 @@ export default async function PostPage({ params }: Props) {
             src={post.cover_image_url}
             alt={post.title}
             className="w-full h-full object-cover"
+            style={coverStyle(post.cover_image_options ?? {})}
           />
         </div>
       )}
@@ -290,6 +292,16 @@ export default async function PostPage({ params }: Props) {
                 </div>
               </nav>
             )}
+
+            {/* Brand footer */}
+            <div className="mt-16 flex items-center gap-2" style={{ color: 'var(--text-tertiary)' }}>
+              <svg width="11" height="8" viewBox="0 0 18 11" fill="currentColor">
+                <rect x="0" y="0" width="18" height="3" rx="1" />
+                <rect x="0" y="4" width="18" height="3" rx="1" />
+                <rect x="0" y="8" width="10" height="3" rx="1" />
+              </svg>
+              <span className="text-xs">Publicado con KipPost</span>
+            </div>
           </article>
 
           {/* TOC sidebar */}

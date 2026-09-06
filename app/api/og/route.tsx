@@ -8,6 +8,8 @@ export async function GET(req: NextRequest) {
   const title = searchParams.get('title') ?? 'KipPost'
   const author = searchParams.get('author') ?? ''
 
+  const fontSize = title.length > 60 ? 44 : title.length > 40 ? 52 : 62
+
   return new ImageResponse(
     (
       <div
@@ -18,37 +20,53 @@ export async function GET(req: NextRequest) {
           flexDirection: 'column',
           justifyContent: 'flex-end',
           padding: '60px',
-          background: '#0f0f0f',
+          background: '#ffffff',
           fontFamily: 'sans-serif',
         }}
       >
-        {/* Subtle grid accent */}
+        {/* Top-left: Pila mark + KipPost */}
         <div style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: 'radial-gradient(circle at 80% 20%, rgba(255,255,255,0.04) 0%, transparent 60%)',
+          position: 'absolute',
+          top: 52,
+          left: 60,
           display: 'flex',
-        }} />
+          alignItems: 'center',
+          gap: '8px',
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+            <div style={{ width: '16px', height: '3px', background: '#37352f', borderRadius: '1px' }} />
+            <div style={{ width: '16px', height: '3px', background: '#37352f', borderRadius: '1px' }} />
+            <div style={{ width: '9px', height: '3px', background: '#37352f', borderRadius: '1px' }} />
+          </div>
+          <span style={{ fontSize: 15, fontWeight: 600, color: '#37352f', letterSpacing: '0.01em' }}>KipPost</span>
+        </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <p style={{ fontSize: 18, color: '#666', margin: 0, letterSpacing: '0.05em' }}>
-            {author || 'KipPost'}
-          </p>
+        {/* Bottom: author + title */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {author && (
+            <p style={{ fontSize: 18, color: '#787774', margin: 0 }}>
+              {author}
+            </p>
+          )}
           <h1 style={{
-            fontSize: title.length > 60 ? 44 : title.length > 40 ? 52 : 62,
+            fontSize,
             fontWeight: 700,
-            color: '#f5f5f5',
+            color: '#37352f',
             margin: 0,
-            lineHeight: 1.15,
-            maxWidth: '900px',
+            lineHeight: 1.2,
+            maxWidth: '960px',
           }}>
             {title}
           </h1>
         </div>
 
-        {/* KipPost branding */}
+        {/* Bottom-right: kippost.com */}
         <div style={{
-          position: 'absolute', top: 52, right: 60,
-          fontSize: 16, color: '#444', fontWeight: 600, letterSpacing: '0.02em',
+          position: 'absolute',
+          bottom: 52,
+          right: 60,
+          fontSize: 15,
+          color: '#b9b9b6',
           display: 'flex',
         }}>
           kippost.com

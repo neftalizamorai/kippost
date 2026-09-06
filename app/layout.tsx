@@ -11,8 +11,13 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://kippost.com'),
   title: { default: 'KipPost', template: '%s · KipPost' },
-  description: 'Plataforma de blogs personales',
+  description: 'Un sitio tranquilo para escribir.',
+  openGraph: {
+    siteName: 'KipPost',
+    images: [{ url: '/api/og?title=KipPost', width: 1200, height: 630 }],
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
