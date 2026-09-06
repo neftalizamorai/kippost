@@ -1,4 +1,3 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 function isOwnHost(hostname: string): boolean {
@@ -23,7 +22,10 @@ async function lookupCustomDomain(domain: string): Promise<string | null> {
   try {
     const res = await fetch(
       `${base}/rest/v1/profiles?select=username&custom_domain=eq.${encodeURIComponent(domain)}&limit=1`,
-      { headers: { apikey: key, Authorization: `Bearer ${key}` } }
+      {
+        headers: { apikey: key, Authorization: `Bearer ${key}` },
+        signal: AbortSignal.timeout(3000),
+      }
     )
     if (!res.ok) return null
     const rows: { username: string }[] = await res.json()
@@ -31,6 +33,14 @@ async function lookupCustomDomain(domain: string): Promise<string | null> {
   } catch {
     return null
   }
+}
+
+// Check session without instantiating the Supabase client — avoids any
+// network call (token refresh) that causes MIDDLEWARE_INVOCATION_TIMEOUT.
+function hasSession(request: NextRequest): boolean {
+  return request.cookies.getAll().some(
+    c => c.name.startsWith('sb-') && c.name.includes('-auth-token')
+  )
 }
 
 export async function middleware(request: NextRequest) {
@@ -55,41 +65,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(url)
   }
 
-  let supabaseResponse = NextResponse.next({ request })
+  const loggedIn = hasSession(request)
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
-
-  // getSession reads the cookie locally — no network round-trip, safe for middleware redirects.
-  // Pages and API routes call getUser() server-side for full token verification.
-  const { data: { session } } = await supabase.auth.getSession()
-  const path = request.nextUrl.pathname
-
-  if (!session && path.startsWith('/dashboard')) {
+  if (!loggedIn && pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (session && (path === '/login' || path === '/register')) {
+  if (loggedIn && (pathname === '/login' || pathname === '/register')) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
-  return supabaseResponse
+  return NextResponse.next({ request })
 }
 
 export const config = {
