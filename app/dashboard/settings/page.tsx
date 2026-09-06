@@ -199,7 +199,10 @@ export default function SettingsPage() {
 
   const handleDomainConnect = async () => {
     const domain = sanitizeDomain(customDomain)
-    if (!domain) return
+    if (!domain || !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(domain)) {
+      toast.error('Ingresa un dominio válido, ej: midominio.com')
+      return
+    }
     setDomainConnecting(true)
     try {
       const res = await fetch('/api/domain', {
@@ -581,6 +584,7 @@ export default function SettingsPage() {
                   value={customDomain}
                   onChange={e => setCustomDomain(e.target.value)}
                   onBlur={e => setCustomDomain(sanitizeDomain(e.target.value))}
+                  onKeyDown={e => { if (e.key === 'Enter') e.preventDefault() }}
                   placeholder="midominio.com"
                   className="flex-1 px-3 py-2 text-sm rounded border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
                   style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
@@ -588,7 +592,7 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={handleDomainConnect}
-                  disabled={domainConnecting || !customDomain.trim()}
+                  disabled={domainConnecting || !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(sanitizeDomain(customDomain))}
                   className="text-sm px-4 py-2 rounded font-medium hover:opacity-90 disabled:opacity-40 transition-opacity"
                   style={{ background: 'var(--text)', color: 'var(--bg)' }}
                 >
