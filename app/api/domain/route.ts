@@ -34,6 +34,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: 'Dominio inválido' }, { status: 400 })
   }
 
+  // Reject if user already has a connected domain
+  const { data: existing } = await supabase
+    .from('profiles')
+    .select('custom_domain')
+    .eq('id', user.id)
+    .single()
+  if (existing?.custom_domain && existing.custom_domain !== domain) {
+    return NextResponse.json({ ok: false, error: 'Ya tienes un dominio conectado. Desconéctalo antes de añadir uno nuevo.' }, { status: 409 })
+  }
+
   const addDomain = async (name: string) =>
     fetch(`${VERCEL_API}/v10/projects/${PROJECT_ID}/domains`, {
       method: 'POST',

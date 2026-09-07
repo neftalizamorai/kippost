@@ -69,7 +69,16 @@ export default function EditPostPage() {
   useEffect(() => {
     const load = async () => {
       const supabase = createClient()
-      const { data } = await supabase.from('posts').select('*').eq('id', postId).single()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setLoading(false); return }
+
+      const { data } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('id', postId)
+        .eq('user_id', user.id)
+        .single()
+
       if (data) {
         setPost(data)
         setTitle(data.title)
@@ -90,12 +99,9 @@ export default function EditPostPage() {
         setContent(contentToLoad)
       }
       setLoading(false)
-      // Load user's blog sections
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data: profile } = await supabase.from('profiles').select('blog_sections').eq('id', user.id).single()
-        if (profile?.blog_sections) setBlogSections(profile.blog_sections as BlogSection[])
-      }
+
+      const { data: profile } = await supabase.from('profiles').select('blog_sections').eq('id', user.id).single()
+      if (profile?.blog_sections) setBlogSections(profile.blog_sections as BlogSection[])
     }
     load()
   }, [postId])

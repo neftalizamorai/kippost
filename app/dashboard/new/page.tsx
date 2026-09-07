@@ -47,6 +47,7 @@ export default function NewPostPage() {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>()
   const autoSaveRef = useRef<ReturnType<typeof setInterval>>()
   const draftIdRef = useRef<string | null>(null)
+  const autoSavingRef = useRef(false)
   const titleRef = useRef<HTMLTextAreaElement>(null)
   const router = useRouter()
   const { focusMode, toggleFocusMode } = useFocusMode()
@@ -96,11 +97,12 @@ export default function NewPostPage() {
       } catch {}
     }, 2000)
     return () => clearTimeout(saveTimerRef.current)
-  }, [title, content, excerpt, tags, pinned, coverImageUrl, initialized])
+  }, [title, content, excerpt, tags, pinned, coverImageUrl, coverOptions, initialized])
 
   useEffect(() => {
     autoSaveRef.current = setInterval(async () => {
-      if (!title.trim() || !initialized) return
+      if (!title.trim() || !initialized || autoSavingRef.current) return
+      autoSavingRef.current = true
       setAutoSaveStatus('saving')
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
@@ -124,6 +126,7 @@ export default function NewPostPage() {
         }).select('id').single()
         if (data) draftIdRef.current = data.id
       }
+      autoSavingRef.current = false
       setAutoSaveStatus('saved')
       setTimeout(() => setAutoSaveStatus('idle'), 3000)
     }, 30000)

@@ -198,6 +198,32 @@ export default function SettingsPage() {
     setUploading(false)
   }
 
+  const handleAvatarDelete = async () => {
+    if (!avatarUrl || !userId) return
+    // Extract the bucket-relative path from the public URL (strips the cache-buster query param)
+    let storagePath: string | undefined
+    try {
+      const url = new URL(avatarUrl)
+      const parts = url.pathname.split('/avatars/')
+      storagePath = parts[1] // e.g. "userId/avatar.jpg"
+    } catch {
+      // malformed URL – fall through and just clear local state
+    }
+    setUploading(true)
+    if (storagePath) {
+      const supabase = createClient()
+      const { error } = await supabase.storage.from('avatars').remove([storagePath])
+      if (error) {
+        toast.error(error.message)
+        setUploading(false)
+        return
+      }
+    }
+    setAvatarUrl('')
+    setUploading(false)
+    toast.info('Foto eliminada. Haz clic en Guardar para confirmar.')
+  }
+
   const handleDomainConnect = async () => {
     const domain = sanitizeDomain(customDomain)
     if (!domain || !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(domain)) {
@@ -321,26 +347,22 @@ export default function SettingsPage() {
             </div>
           )}
           <div
-            className="absolute inset-0 flex items-center justify-center transition-opacity"
-            style={{
-              background: 'rgba(0,0,0,0.45)',
-              opacity: uploading ? 1 : undefined,
-            }}
-            // always faintly visible when no avatar so users know it's clickable
+            className={`absolute inset-0 flex items-center justify-center transition-opacity ${
+              uploading ? '' : avatarUrl ? 'opacity-0 group-hover:opacity-100' : 'opacity-60 group-hover:opacity-100'
+            }`}
+            style={{ background: 'rgba(0,0,0,0.45)' }}
           >
-            <div className={avatarUrl ? 'opacity-0 group-hover:opacity-100 transition-opacity' : 'opacity-60 group-hover:opacity-100 transition-opacity'}>
-              {uploading ? (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin">
-                  <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                </svg>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="17 8 12 3 7 8"/>
-                  <line x1="12" y1="3" x2="12" y2="15"/>
-                </svg>
-              )}
-            </div>
+            {uploading ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            )}
           </div>
         </button>
         <input
@@ -366,7 +388,7 @@ export default function SettingsPage() {
             {avatarUrl && !uploading && (
               <button
                 type="button"
-                onClick={() => setAvatarUrl('')}
+                onClick={handleAvatarDelete}
                 className="text-xs hover:underline"
                 style={{ color: 'var(--text-tertiary)' }}
               >
