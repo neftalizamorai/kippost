@@ -530,6 +530,48 @@ export default function SettingsPage() {
           </div>
         )}
 
+        {/* Section visibility — minimal template only */}
+        {template === 'minimal' && (() => {
+          const ALL_SECTIONS = [
+            { id: 'home', label: templateConfig.minimal?.tabHome || 'Inicio' },
+            { id: 'archive', label: templateConfig.minimal?.tabArchive || 'Archivo' },
+            { id: 'about', label: templateConfig.minimal?.tabAbout || 'Sobre mí' },
+          ]
+          const currentSections = (templateConfig.minimal?.sections ?? 'home,archive,about').split(',')
+          const toggle = (id: string) => {
+            const next = currentSections.includes(id)
+              ? currentSections.filter(s => s !== id)
+              : [...currentSections, id]
+            if (next.length === 0) return
+            setTemplateConfig(prev => ({
+              ...prev,
+              minimal: { ...prev.minimal, sections: next.join(',') },
+            }))
+          }
+          return (
+            <div className="pt-2">
+              <p className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>Secciones visibles</p>
+              <p className="text-xs mb-4" style={{ color: 'var(--text-tertiary)' }}>
+                Elige qué pestañas aparecen en tu blog. Debe quedar al menos una.
+              </p>
+              <div className="flex flex-col gap-2">
+                {ALL_SECTIONS.map(s => (
+                  <label key={s.id} className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={currentSections.includes(s.id)}
+                      onChange={() => toggle(s.id)}
+                      className="w-4 h-4 rounded"
+                      style={{ accentColor: 'var(--text)' }}
+                    />
+                    <span className="text-sm" style={{ color: 'var(--text)' }}>{s.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )
+        })()}
+
         <button
           type="submit"
           disabled={saving}
