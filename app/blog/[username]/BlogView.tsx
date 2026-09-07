@@ -136,7 +136,7 @@ export default function BlogView({ profile, posts, config = {}, blogSections = [
             ) : regularPosts.length === 0 ? null : (
               <div>
                 {regularPosts.slice(0, 10).map((post, i) => (
-                  <PostRow key={post.id} post={post} username={profile.username} last={i === Math.min(regularPosts.length, 10) - 1} />
+                  <PostRow key={post.id} post={post} username={profile.username} last={i === Math.min(regularPosts.length, 10) - 1} blogSections={blogSections} />
                 ))}
               </div>
             )}
@@ -156,7 +156,7 @@ export default function BlogView({ profile, posts, config = {}, blogSections = [
                   </h3>
                   <div>
                     {monthPosts.map((post, i) => (
-                      <PostRow key={post.id} post={post} username={profile.username} last={i === monthPosts.length - 1} />
+                      <PostRow key={post.id} post={post} username={profile.username} last={i === monthPosts.length - 1} blogSections={blogSections} />
                     ))}
                   </div>
                 </div>
@@ -196,7 +196,7 @@ export default function BlogView({ profile, posts, config = {}, blogSections = [
               ) : (
                 <div>
                   {sectionPosts.map((post, i) => (
-                    <PostRow key={post.id} post={post} username={profile.username} last={i === sectionPosts.length - 1} />
+                    <PostRow key={post.id} post={post} username={profile.username} last={i === sectionPosts.length - 1} blogSections={blogSections} />
                   ))}
                 </div>
               )}
@@ -241,8 +241,12 @@ function FeaturedCard({ post, username }: { post: Post; username: string }) {
   )
 }
 
-function PostRow({ post, username, last }: { post: Post; username: string; last: boolean }) {
+function PostRow({ post, username, last, blogSections = [] }: { post: Post; username: string; last: boolean; blogSections?: BlogSectionDef[] }) {
   const excerpt = safeExcerpt(post.excerpt)
+  const postSectionNames = Array.isArray(post.post_sections)
+    ? blogSections.filter(s => post.post_sections!.includes(s.id)).map(s => s.name)
+    : []
+  const hasBadges = (post.tags && post.tags.length > 0) || postSectionNames.length > 0
   return (
     <Link href={`/@${username}/${post.slug}`}>
       <div
@@ -277,9 +281,18 @@ function PostRow({ post, username, last }: { post: Post; username: string; last:
               </p>
             )}
 
-            {post.tags && post.tags.length > 0 && (
+            {hasBadges && (
               <div className="flex flex-wrap gap-1.5 mt-3">
-                {post.tags.slice(0, 4).map((tag: string) => (
+                {postSectionNames.map((name) => (
+                  <span
+                    key={name}
+                    className="text-xs px-1.5 py-0.5 rounded"
+                    style={{ background: 'var(--bg-secondary)', color: 'var(--text)', fontWeight: 500, border: '1px solid var(--border)' }}
+                  >
+                    {name}
+                  </span>
+                ))}
+                {post.tags && post.tags.slice(0, 4).map((tag: string) => (
                   <span
                     key={tag}
                     className="text-xs px-1.5 py-0.5 rounded"
