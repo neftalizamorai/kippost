@@ -105,17 +105,16 @@ function sanitizeDomain(raw: string): string {
     .split('?')[0]
 }
 
-const TEMPLATE_FIELDS: Record<string, { key: string; label: string; placeholder: string }[]> = {
-  hero: [
-    { key: 'greeting', label: 'Saludo', placeholder: "Hey, I'm" },
-    { key: 'articlesTitle', label: 'Título de artículos', placeholder: 'My Latest Articles' },
-  ],
-  minimal: [
-    { key: 'tabHome', label: 'Tab Inicio', placeholder: 'Inicio' },
-    { key: 'tabArchive', label: 'Tab Archivo', placeholder: 'Archivo' },
-    { key: 'tabAbout', label: 'Tab Sobre mí', placeholder: 'Sobre mí' },
-  ],
-}
+const HERO_FIELDS = [
+  { key: 'greeting', label: 'Saludo', placeholder: "Hey, I'm" },
+  { key: 'articlesTitle', label: 'Título de artículos', placeholder: 'My Latest Articles' },
+]
+
+const BUILTIN_TABS = [
+  { id: 'home', defaultName: 'Inicio', configKey: 'tabHome' },
+  { id: 'archive', defaultName: 'Archivo', configKey: 'tabArchive' },
+  { id: 'about', defaultName: 'Sobre mí', configKey: 'tabAbout' },
+] as const
 
 export default function SettingsPage() {
   const [name, setName] = useState('')
@@ -504,25 +503,25 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Text customization per template */}
-        {TEMPLATE_FIELDS[template] && (
+        {/* Hero template fields */}
+        {template === 'hero' && (
           <div className="pt-2">
             <p className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>Personalizar textos</p>
             <p className="text-xs mb-4" style={{ color: 'var(--text-tertiary)' }}>
               Deja vacío para usar el texto por defecto.
             </p>
             <div className="space-y-3">
-              {TEMPLATE_FIELDS[template].map(field => (
+              {HERO_FIELDS.map(field => (
                 <div key={field.key}>
                   <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
                     {field.label}
                   </label>
                   <input
                     type="text"
-                    value={templateConfig[template]?.[field.key] ?? ''}
+                    value={templateConfig.hero?.[field.key] ?? ''}
                     onChange={e => setTemplateConfig(prev => ({
                       ...prev,
-                      [template]: { ...prev[template], [field.key]: e.target.value },
+                      hero: { ...prev.hero, [field.key]: e.target.value },
                     }))}
                     placeholder={field.placeholder}
                     className="w-full px-3 py-2 text-sm rounded border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
@@ -534,43 +533,134 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* Section visibility — minimal template only */}
+        {/* Unified navigation editor — minimal template */}
         {template === 'minimal' && (() => {
-          const ALL_SECTIONS = [
-            { id: 'home', label: templateConfig.minimal?.tabHome || 'Inicio' },
-            { id: 'archive', label: templateConfig.minimal?.tabArchive || 'Archivo' },
-            { id: 'about', label: templateConfig.minimal?.tabAbout || 'Sobre mí' },
-          ]
-          const currentSections = (templateConfig.minimal?.sections ?? 'home,archive,about').split(',')
-          const toggle = (id: string) => {
-            const next = currentSections.includes(id)
-              ? currentSections.filter(s => s !== id)
-              : [...currentSections, id]
+          const enabledIds = (templateConfig.minimal?.sections ?? 'home,archive,about').split(',').filter(Boolean)
+          const toggleBuiltin = (id: string) => {
+            const next = enabledIds.includes(id) ? enabledIds.filter(s => s !== id) : [...enabledIds, id]
             if (next.length === 0) return
-            setTemplateConfig(prev => ({
-              ...prev,
-              minimal: { ...prev.minimal, sections: next.join(',') },
-            }))
+            setTemplateConfig(prev => ({ ...prev, minimal: { ...prev.minimal, sections: next.join(',') } }))
           }
           return (
             <div className="pt-2">
-              <p className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>Secciones visibles</p>
+              <p className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>Navegación del blog</p>
               <p className="text-xs mb-4" style={{ color: 'var(--text-tertiary)' }}>
-                Elige qué pestañas aparecen en tu blog. Debe quedar al menos una.
+                Activa o desactiva pestañas y personaliza sus nombres. Las secciones propias aparecen después.
               </p>
-              <div className="flex flex-col gap-2">
-                {ALL_SECTIONS.map(s => (
-                  <label key={s.id} className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={currentSections.includes(s.id)}
-                      onChange={() => toggle(s.id)}
-                      className="w-4 h-4 rounded"
-                      style={{ accentColor: 'var(--text)' }}
-                    />
-                    <span className="text-sm" style={{ color: 'var(--text)' }}>{s.label}</span>
-                  </label>
-                ))}
+
+              {/* Built-in tabs */}
+              <div className="rounded border overflow-hidden mb-3" style={{ borderColor: 'var(--border)' }}>
+                {BUILTIN_TABS.map((tab, i) => {
+                  const isEnabled = enabledIds.includes(tab.id)
+                  return (
+                    <div
+                      key={tab.id}
+                      className="flex items-center gap-3 px-3 py-2.5"
+                      style={{
+                        borderTop: i > 0 ? '1px solid var(--border)' : undefined,
+                        opacity: isEnabled ? 1 : 0.45,
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => toggleBuiltin(tab.id)}
+                        title={isEnabled ? 'Desactivar pestaña' : 'Activar pestaña'}
+                        className="flex-shrink-0 w-8 h-5 rounded-full transition-colors relative"
+                        style={{ background: isEnabled ? 'var(--text)' : 'var(--border)' }}
+                      >
+                        <span
+                          className="absolute top-0.5 w-4 h-4 rounded-full transition-transform"
+                          style={{
+                            background: 'var(--bg)',
+                            left: isEnabled ? 'calc(100% - 18px)' : '2px',
+                          }}
+                        />
+                      </button>
+                      <span className="text-xs w-16 flex-shrink-0" style={{ color: 'var(--text-tertiary)' }}>
+                        {tab.defaultName}
+                      </span>
+                      <input
+                        type="text"
+                        value={templateConfig.minimal?.[tab.configKey] ?? ''}
+                        onChange={e => setTemplateConfig(prev => ({
+                          ...prev,
+                          minimal: { ...prev.minimal, [tab.configKey]: e.target.value },
+                        }))}
+                        placeholder={tab.defaultName}
+                        className="flex-1 text-sm bg-transparent outline-none"
+                        style={{ color: 'var(--text)' }}
+                      />
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Custom sections */}
+              {blogSections.length > 0 && (
+                <div className="rounded border overflow-hidden mb-2" style={{ borderColor: 'var(--border)' }}>
+                  {blogSections.map((s, i) => (
+                    <div
+                      key={s.id}
+                      className="flex items-center gap-3 px-3 py-2.5"
+                      style={{ borderTop: i > 0 ? '1px solid var(--border)' : undefined }}
+                    >
+                      <span className="text-xs w-16 flex-shrink-0" style={{ color: 'var(--text-tertiary)' }}>
+                        Sección
+                      </span>
+                      <input
+                        type="text"
+                        value={s.name}
+                        onChange={e => setBlogSections(prev =>
+                          prev.map(x => x.id === s.id ? { ...x, name: e.target.value } : x)
+                        )}
+                        className="flex-1 text-sm bg-transparent outline-none"
+                        style={{ color: 'var(--text)' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setBlogSections(prev => prev.filter(x => x.id !== s.id))}
+                        className="flex-shrink-0 hover:opacity-60 transition-opacity"
+                        style={{ color: 'var(--text-tertiary)' }}
+                        title="Eliminar sección"
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add section */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newSectionName}
+                  onChange={e => setNewSectionName(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && newSectionName.trim()) {
+                      e.preventDefault()
+                      setBlogSections(prev => [...prev, { id: Math.random().toString(36).slice(2, 9), name: newSectionName.trim() }])
+                      setNewSectionName('')
+                    }
+                  }}
+                  placeholder="Nueva sección…"
+                  className="flex-1 px-3 py-2 text-sm rounded border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
+                  style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!newSectionName.trim()) return
+                    setBlogSections(prev => [...prev, { id: Math.random().toString(36).slice(2, 9), name: newSectionName.trim() }])
+                    setNewSectionName('')
+                  }}
+                  className="px-3 py-2 text-sm rounded border transition-colors hover:bg-[var(--bg-hover)]"
+                  style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
+                >
+                  Añadir
+                </button>
               </div>
             </div>
           )
@@ -585,80 +675,6 @@ export default function SettingsPage() {
           {saving ? 'Guardando...' : 'Guardar cambios'}
         </button>
       </form>
-
-      {/* Blog sections */}
-      <div className="pt-6 mt-6" style={{ borderTop: '1px solid var(--border)' }}>
-        <p className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>Secciones del blog</p>
-        <p className="text-xs mb-4" style={{ color: 'var(--text-tertiary)' }}>
-          Cada sección aparece como una pestaña en tu blog. Asigna posts a secciones desde el editor.
-        </p>
-
-        {blogSections.length > 0 && (
-          <div className="space-y-2 mb-3">
-            {blogSections.map(s => (
-              <div
-                key={s.id}
-                className="flex items-center gap-2 px-3 py-2 rounded border"
-                style={{ borderColor: 'var(--border)', background: 'var(--bg-secondary)' }}
-              >
-                <input
-                  type="text"
-                  value={s.name}
-                  onChange={e => setBlogSections(prev =>
-                    prev.map(x => x.id === s.id ? { ...x, name: e.target.value } : x)
-                  )}
-                  className="flex-1 text-sm bg-transparent outline-none"
-                  style={{ color: 'var(--text)' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setBlogSections(prev => prev.filter(x => x.id !== s.id))}
-                  className="hover:opacity-60 transition-opacity flex-shrink-0"
-                  style={{ color: 'var(--text-tertiary)' }}
-                  title="Eliminar sección"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                  </svg>
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newSectionName}
-            onChange={e => setNewSectionName(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter' && newSectionName.trim()) {
-                e.preventDefault()
-                setBlogSections(prev => [...prev, { id: Math.random().toString(36).slice(2, 9), name: newSectionName.trim() }])
-                setNewSectionName('')
-              }
-            }}
-            placeholder="Nueva sección…"
-            className="flex-1 px-3 py-2 text-sm rounded border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
-            style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-          />
-          <button
-            type="button"
-            onClick={() => {
-              if (!newSectionName.trim()) return
-              setBlogSections(prev => [...prev, { id: Math.random().toString(36).slice(2, 9), name: newSectionName.trim() }])
-              setNewSectionName('')
-            }}
-            className="px-3 py-2 text-sm rounded border transition-colors hover:bg-[var(--bg-hover)]"
-            style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
-          >
-            Añadir
-          </button>
-        </div>
-        <p className="text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>
-          Guarda los cambios para que las secciones aparezcan en tu blog.
-        </p>
-      </div>
 
       {/* Custom domain — outside <form> so Enter/submit can't interfere */}
       <div className="pt-6 mt-6" style={{ borderTop: '1px solid var(--border)' }}>
