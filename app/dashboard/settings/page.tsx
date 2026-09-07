@@ -311,7 +311,7 @@ export default function SettingsPage() {
           disabled={uploading}
           className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 group"
           style={{ border: '1px solid var(--border)' }}
-          title="Cambiar foto"
+          title={avatarUrl ? 'Cambiar foto' : 'Añadir foto'}
         >
           {avatarUrl ? (
             <Image src={avatarUrl} alt="Avatar" width={64} height={64} className="w-full h-full object-cover" unoptimized />
@@ -320,18 +320,27 @@ export default function SettingsPage() {
               {name?.[0]?.toUpperCase() || username?.[0]?.toUpperCase() || '?'}
             </div>
           )}
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: 'rgba(0,0,0,0.45)' }}>
-            {uploading ? (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin">
-                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-              </svg>
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="17 8 12 3 7 8"/>
-                <line x1="12" y1="3" x2="12" y2="15"/>
-              </svg>
-            )}
+          <div
+            className="absolute inset-0 flex items-center justify-center transition-opacity"
+            style={{
+              background: 'rgba(0,0,0,0.45)',
+              opacity: uploading ? 1 : undefined,
+            }}
+            // always faintly visible when no avatar so users know it's clickable
+          >
+            <div className={avatarUrl ? 'opacity-0 group-hover:opacity-100 transition-opacity' : 'opacity-60 group-hover:opacity-100 transition-opacity'}>
+              {uploading ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin">
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+              )}
+            </div>
           </div>
         </button>
         <input
@@ -344,15 +353,27 @@ export default function SettingsPage() {
         <div>
           <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>{name || username}</p>
           <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>@{username}</p>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="text-xs mt-1 hover:underline disabled:opacity-50"
-            style={{ color: 'var(--text-tertiary)' }}
-          >
-            {uploading ? 'Subiendo...' : 'Cambiar foto'}
-          </button>
+          <div className="flex items-center gap-3 mt-1">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="text-xs hover:underline disabled:opacity-50"
+              style={{ color: 'var(--text-tertiary)' }}
+            >
+              {uploading ? 'Subiendo...' : avatarUrl ? 'Cambiar foto' : 'Añadir foto'}
+            </button>
+            {avatarUrl && !uploading && (
+              <button
+                type="button"
+                onClick={() => setAvatarUrl('')}
+                className="text-xs hover:underline"
+                style={{ color: 'var(--text-tertiary)' }}
+              >
+                Eliminar
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
