@@ -3,24 +3,36 @@
 import { useState, useEffect } from 'react'
 import TagInput from './TagInput'
 
+export interface BlogSection {
+  id: string
+  name: string
+}
+
 interface Props {
   excerpt: string
   tags: string[]
   published: boolean
+  unlisted: boolean
   pinned: boolean
+  postSections: string[]
+  blogSections: BlogSection[]
   onExcerptChange: (v: string) => void
   onTagsChange: (v: string[]) => void
   onPublishedChange: (v: boolean) => void
+  onUnlistedChange: (v: boolean) => void
   onPinnedChange: (v: boolean) => void
+  onPostSectionsChange: (v: string[]) => void
   onClose: () => void
   onDelete?: () => void
   deleting?: boolean
 }
 
+type Estado = 'draft' | 'public' | 'unlisted'
+
 export default function PostSettingsPanel({
-  excerpt, tags, published, pinned,
-  onExcerptChange, onTagsChange, onPublishedChange, onPinnedChange,
-  onClose, onDelete, deleting,
+  excerpt, tags, published, unlisted, pinned, postSections, blogSections,
+  onExcerptChange, onTagsChange, onPublishedChange, onUnlistedChange,
+  onPinnedChange, onPostSectionsChange, onClose, onDelete, deleting,
 }: Props) {
   const [visible, setVisible] = useState(false)
 
@@ -32,6 +44,28 @@ export default function PostSettingsPanel({
     setVisible(false)
     setTimeout(onClose, 200)
   }
+
+  const estado: Estado = !published ? 'draft' : unlisted ? 'unlisted' : 'public'
+
+  const setEstado = (e: Estado) => {
+    if (e === 'draft') { onPublishedChange(false); onUnlistedChange(false) }
+    else if (e === 'public') { onPublishedChange(true); onUnlistedChange(false) }
+    else { onPublishedChange(true); onUnlistedChange(true) }
+  }
+
+  const toggleSection = (id: string) => {
+    onPostSectionsChange(
+      postSections.includes(id)
+        ? postSections.filter(s => s !== id)
+        : [...postSections, id]
+    )
+  }
+
+  const ESTADO_OPTIONS: { label: string; value: Estado; desc: string }[] = [
+    { label: 'Borrador', value: 'draft', desc: 'Solo visible para ti.' },
+    { label: 'Publicado', value: 'public', desc: 'Aparece en Inicio.' },
+    { label: 'No listado', value: 'unlisted', desc: 'Accesible por URL, no en Inicio.' },
+  ]
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end" onClick={handleClose}>
@@ -70,37 +104,63 @@ export default function PostSettingsPanel({
         <div className="flex-1 px-5 py-5 flex flex-col gap-6">
           {/* Estado */}
           <div>
-            <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Estado</p>
-            <div className="flex gap-2">
-              {[
-                { label: 'Borrador', value: false },
-                { label: 'Publicado', value: true },
-              ].map(opt => (
+            <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Visibilidad</p>
+            <div className="flex flex-col gap-1.5">
+              {ESTADO_OPTIONS.map(opt => (
                 <button
-                  key={opt.label}
-                  onClick={() => onPublishedChange(opt.value)}
-                  className="flex-1 text-xs py-1.5 rounded border transition-all"
+                  key={opt.value}
+                  onClick={() => setEstado(opt.value)}
+                  className="flex items-center gap-3 px-3 py-2 rounded border text-left transition-all"
                   style={{
-                    borderColor: published === opt.value ? 'var(--text)' : 'var(--border)',
-                    background: published === opt.value ? 'var(--text)' : 'transparent',
-                    color: published === opt.value ? 'var(--bg)' : 'var(--text-secondary)',
-                    fontWeight: published === opt.value ? 600 : 400,
+                    borderColor: estado === opt.value ? 'var(--text)' : 'var(--border)',
+                    background: estado === opt.value ? 'var(--text)' : 'transparent',
                   }}
                 >
-                  {opt.label}
+                  <span
+                    className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                    style={{ background: estado === opt.value ? 'var(--bg)' : 'var(--text-tertiary)' }}
+                  />
+                  <div>
+                    <p className="text-xs font-medium" style={{ color: estado === opt.value ? 'var(--bg)' : 'var(--text)' }}>
+                      {opt.label}
+                    </p>
+                    <p className="text-xs" style={{ color: estado === opt.value ? 'rgba(128,128,128,0.7)' : 'var(--text-tertiary)' }}>
+                      {opt.desc}
+                    </p>
+                  </div>
                 </button>
               ))}
             </div>
-            <p className="text-xs mt-1.5" style={{ color: 'var(--text-tertiary)' }}>
-              {published ? 'Visible en tu blog público.' : 'Solo visible para ti.'}
-            </p>
           </div>
+
+          {/* Secciones */}
+          {blogSections.length > 0 && (
+            <div>
+              <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Secciones</p>
+              <div className="flex flex-col gap-1.5">
+                {blogSections.map(s => (
+                  <label key={s.id} className="flex items-center gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={postSections.includes(s.id)}
+                      onChange={() => toggleSection(s.id)}
+                      className="w-3.5 h-3.5 rounded"
+                      style={{ accentColor: 'var(--text)' }}
+                    />
+                    <span className="text-sm" style={{ color: 'var(--text)' }}>{s.name}</span>
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs mt-1.5" style={{ color: 'var(--text-tertiary)' }}>
+                El post aparecerá en las secciones seleccionadas.
+              </p>
+            </div>
+          )}
 
           {/* Extracto */}
           <div>
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-              Extracto{' '}
-              <span style={{ color: 'var(--text-tertiary)' }}>(opcional)</span>
+              Extracto <span style={{ color: 'var(--text-tertiary)' }}>(opcional)</span>
             </label>
             <textarea
               value={excerpt}
@@ -132,7 +192,6 @@ export default function PostSettingsPanel({
           <label
             className="flex items-center gap-2 text-sm cursor-pointer select-none"
             style={{ color: pinned ? 'var(--text)' : 'var(--text-secondary)' }}
-            title="Aparece como enlace en la barra de navegación del blog"
           >
             <input
               type="checkbox"
@@ -155,10 +214,7 @@ export default function PostSettingsPanel({
 
         {/* Eliminar */}
         {onDelete && (
-          <div
-            className="px-5 py-4"
-            style={{ borderTop: '1px solid var(--border)' }}
-          >
+          <div className="px-5 py-4" style={{ borderTop: '1px solid var(--border)' }}>
             <button
               onClick={onDelete}
               disabled={deleting}

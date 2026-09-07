@@ -132,7 +132,7 @@ export default async function BlogPage({ params }: Props) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, username, name, bio, avatar_url, social_links, template, template_config')
+    .select('id, username, name, bio, avatar_url, social_links, template, template_config, blog_sections')
     .eq('username', params.username)
     .single()
 
@@ -238,6 +238,7 @@ export default async function BlogPage({ params }: Props) {
             profile={profile}
             posts={posts ?? []}
             config={(profile.template_config as { minimal?: MinimalConfig })?.minimal}
+            blogSections={(profile.blog_sections as { id: string; name: string }[] | null) ?? []}
           />
         </div>
       )}

@@ -18,6 +18,7 @@ interface Post {
   excerpt: string | null
   content: string
   published: boolean
+  unlisted?: boolean
   pinned: boolean
   created_at: string
   slug: string
@@ -165,11 +166,13 @@ function PostRow({ post, username, last, views }: { post: Post; username: string
             {post.title}
           </Link>
           {!post.published && (
-            <span
-              className="inline-flex items-center text-xs px-1.5 py-0.5 rounded font-medium flex-shrink-0"
-              style={{ background: 'rgba(251,188,4,0.12)', color: '#8a6500' }}
-            >
+            <span className="inline-flex items-center text-xs px-1.5 py-0.5 rounded font-medium flex-shrink-0" style={{ background: 'rgba(251,188,4,0.12)', color: '#8a6500' }}>
               borrador
+            </span>
+          )}
+          {post.published && post.unlisted && (
+            <span className="inline-flex items-center text-xs px-1.5 py-0.5 rounded font-medium flex-shrink-0" style={{ background: 'rgba(100,100,100,0.1)', color: 'var(--text-tertiary)' }}>
+              no listado
             </span>
           )}
         </div>

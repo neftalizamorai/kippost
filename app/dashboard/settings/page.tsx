@@ -129,6 +129,8 @@ export default function SettingsPage() {
   const [customDomain, setCustomDomain] = useState('')
   const [domainConnecting, setDomainConnecting] = useState(false)
   const [dnsRecords, setDnsRecords] = useState<{ type: string; domain: string; value: string }[]>([])
+  const [blogSections, setBlogSections] = useState<{ id: string; name: string }[]>([])
+  const [newSectionName, setNewSectionName] = useState('')
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -158,6 +160,7 @@ export default function SettingsPage() {
         setTemplateConfig(data.template_config || {})
         setSavedDomain(data.custom_domain ?? '')
         setCustomDomain(data.custom_domain ?? '')
+        setBlogSections(data.blog_sections ?? [])
       }
       setLoading(false)
     }
@@ -273,6 +276,7 @@ export default function SettingsPage() {
         social_links: cleanSocial,
         template,
         template_config: templateConfig,
+        blog_sections: blogSections,
       })
       .eq('id', user.id)
 
@@ -581,6 +585,80 @@ export default function SettingsPage() {
           {saving ? 'Guardando...' : 'Guardar cambios'}
         </button>
       </form>
+
+      {/* Blog sections */}
+      <div className="pt-6 mt-6" style={{ borderTop: '1px solid var(--border)' }}>
+        <p className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>Secciones del blog</p>
+        <p className="text-xs mb-4" style={{ color: 'var(--text-tertiary)' }}>
+          Cada sección aparece como una pestaña en tu blog. Asigna posts a secciones desde el editor.
+        </p>
+
+        {blogSections.length > 0 && (
+          <div className="space-y-2 mb-3">
+            {blogSections.map(s => (
+              <div
+                key={s.id}
+                className="flex items-center gap-2 px-3 py-2 rounded border"
+                style={{ borderColor: 'var(--border)', background: 'var(--bg-secondary)' }}
+              >
+                <input
+                  type="text"
+                  value={s.name}
+                  onChange={e => setBlogSections(prev =>
+                    prev.map(x => x.id === s.id ? { ...x, name: e.target.value } : x)
+                  )}
+                  className="flex-1 text-sm bg-transparent outline-none"
+                  style={{ color: 'var(--text)' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setBlogSections(prev => prev.filter(x => x.id !== s.id))}
+                  className="hover:opacity-60 transition-opacity flex-shrink-0"
+                  style={{ color: 'var(--text-tertiary)' }}
+                  title="Eliminar sección"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newSectionName}
+            onChange={e => setNewSectionName(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && newSectionName.trim()) {
+                e.preventDefault()
+                setBlogSections(prev => [...prev, { id: Math.random().toString(36).slice(2, 9), name: newSectionName.trim() }])
+                setNewSectionName('')
+              }
+            }}
+            placeholder="Nueva sección…"
+            className="flex-1 px-3 py-2 text-sm rounded border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
+            style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+          />
+          <button
+            type="button"
+            onClick={() => {
+              if (!newSectionName.trim()) return
+              setBlogSections(prev => [...prev, { id: Math.random().toString(36).slice(2, 9), name: newSectionName.trim() }])
+              setNewSectionName('')
+            }}
+            className="px-3 py-2 text-sm rounded border transition-colors hover:bg-[var(--bg-hover)]"
+            style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
+          >
+            Añadir
+          </button>
+        </div>
+        <p className="text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>
+          Guarda los cambios para que las secciones aparezcan en tu blog.
+        </p>
+      </div>
 
       {/* Custom domain — outside <form> so Enter/submit can't interfere */}
       <div className="pt-6 mt-6" style={{ borderTop: '1px solid var(--border)' }}>

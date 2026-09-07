@@ -14,6 +14,7 @@ interface Post {
   slug: string
   cover_image_url: string | null
   pinned: boolean
+  post_sections?: string[]
 }
 
 interface Profile {
@@ -30,13 +31,20 @@ export interface MinimalConfig {
   sections?: string  // comma-separated ids: "home,archive,about"
 }
 
+interface BlogSectionDef {
+  id: string
+  name: string
+}
+
 interface Props {
   profile: Profile
   posts: Post[]
   config?: MinimalConfig
+  blogSections?: BlogSectionDef[]
 }
 
-type Tab = 'home' | 'archive' | 'about'
+type BuiltinTab = 'home' | 'archive' | 'about'
+type TabId = BuiltinTab | string  // custom section id
 
 function safeExcerpt(raw: string | null | undefined): string {
   if (!raw) return ''
@@ -45,39 +53,45 @@ function safeExcerpt(raw: string | null | undefined): string {
   return t
 }
 
-export default function BlogView({ profile, posts, config = {} }: Props) {
+export default function BlogView({ profile, posts, config = {}, blogSections = [] }: Props) {
   const tabHome = config.tabHome || 'Inicio'
   const tabArchive = config.tabArchive || 'Archivo'
   const tabAbout = config.tabAbout || 'Sobre mí'
 
-  const enabledSections: Tab[] = config.sections
-    ? (config.sections.split(',').filter(s => ['home', 'archive', 'about'].includes(s)) as Tab[])
+  const enabledBuiltin: BuiltinTab[] = config.sections
+    ? (config.sections.split(',').filter(s => ['home', 'archive', 'about'].includes(s)) as BuiltinTab[])
     : ['home', 'archive', 'about']
 
-  const [activeTab, setActiveTab] = useState<Tab>(enabledSections[0] ?? 'home')
+  // All tabs: built-in first, then custom sections
+  const allTabs: { id: TabId; label: string }[] = [
+    ...enabledBuiltin.map(id => ({
+      id,
+      label: id === 'home' ? tabHome : id === 'archive' ? tabArchive : tabAbout,
+    })),
+    ...blogSections.map(s => ({ id: s.id, label: s.name })),
+  ]
+
+  const [activeTab, setActiveTab] = useState<TabId>(allTabs[0]?.id ?? 'home')
 
   const featuredPosts = posts.filter(p => p.pinned)
+  // Inicio: published, not unlisted (the post type has no unlisted field server-side — we filter by pinned only here)
   const regularPosts = posts.filter(p => !p.pinned)
 
   const byMonth: Record<string, Post[]> = {}
-  posts.forEach((p) => {
+  regularPosts.forEach((p) => {
     const key = formatMonth(p.created_at)
     if (!byMonth[key]) byMonth[key] = []
     byMonth[key].push(p)
   })
 
-  const recentPosts = regularPosts.slice(0, 10)
-  const showTabs = enabledSections.length > 1
+  const showTabs = allTabs.length > 1
 
   return (
     <div>
-      {/* Destacados */}
+      {/* Destacados — always visible if there are pinned posts */}
       {featuredPosts.length > 0 && (
         <div className="mb-8">
-          <p
-            className="text-xs font-medium uppercase tracking-wider mb-4"
-            style={{ color: 'var(--text-tertiary)' }}
-          >
+          <p className="text-xs font-medium uppercase tracking-wider mb-4" style={{ color: 'var(--text-tertiary)' }}>
             Destacados
           </p>
           <div className="space-y-3">
@@ -91,20 +105,20 @@ export default function BlogView({ profile, posts, config = {} }: Props) {
 
       {/* Tabs */}
       {showTabs && (
-        <div className="flex items-center gap-0" style={{ borderBottom: '1px solid var(--border)' }}>
-          {enabledSections.map((tab) => (
+        <div className="flex items-center gap-0 flex-wrap" style={{ borderBottom: '1px solid var(--border)' }}>
+          {allTabs.map(tab => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
               className="px-4 py-3 text-sm transition-colors relative"
               style={{
-                color: activeTab === tab ? 'var(--text)' : 'var(--text-secondary)',
-                fontWeight: activeTab === tab ? 500 : 400,
-                borderBottom: activeTab === tab ? '2px solid var(--text)' : '2px solid transparent',
+                color: activeTab === tab.id ? 'var(--text)' : 'var(--text-secondary)',
+                fontWeight: activeTab === tab.id ? 500 : 400,
+                borderBottom: activeTab === tab.id ? '2px solid var(--text)' : '2px solid transparent',
                 marginBottom: '-1px',
               }}
             >
-              {tab === 'home' ? tabHome : tab === 'archive' ? tabArchive : tabAbout}
+              {tab.label}
             </button>
           ))}
         </div>
@@ -113,21 +127,16 @@ export default function BlogView({ profile, posts, config = {} }: Props) {
       {/* Tab content */}
       <div className={showTabs ? 'mt-8' : ''}>
         {/* HOME */}
-        {(activeTab === 'home' || !showTabs) && enabledSections.includes('home') && (
+        {activeTab === 'home' && (
           <div>
-            {recentPosts.length === 0 && featuredPosts.length === 0 ? (
+            {regularPosts.length === 0 && featuredPosts.length === 0 ? (
               <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                 Aún no hay posts publicados.
               </p>
-            ) : recentPosts.length === 0 ? null : (
+            ) : regularPosts.length === 0 ? null : (
               <div>
-                {recentPosts.map((post, i) => (
-                  <PostRow
-                    key={post.id}
-                    post={post}
-                    username={profile.username}
-                    last={i === recentPosts.length - 1}
-                  />
+                {regularPosts.slice(0, 10).map((post, i) => (
+                  <PostRow key={post.id} post={post} username={profile.username} last={i === Math.min(regularPosts.length, 10) - 1} />
                 ))}
               </div>
             )}
@@ -135,27 +144,19 @@ export default function BlogView({ profile, posts, config = {} }: Props) {
         )}
 
         {/* ARCHIVE */}
-        {activeTab === 'archive' && enabledSections.includes('archive') && (
+        {activeTab === 'archive' && (
           <div>
             {Object.keys(byMonth).length === 0 ? (
               <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Sin posts aún.</p>
             ) : (
               Object.entries(byMonth).map(([month, monthPosts]) => (
                 <div key={month} className="mb-8">
-                  <h3
-                    className="text-xs font-medium uppercase tracking-wider mb-3"
-                    style={{ color: 'var(--text-tertiary)' }}
-                  >
+                  <h3 className="text-xs font-medium uppercase tracking-wider mb-3" style={{ color: 'var(--text-tertiary)' }}>
                     {month}
                   </h3>
                   <div>
                     {monthPosts.map((post, i) => (
-                      <PostRow
-                        key={post.id}
-                        post={post}
-                        username={profile.username}
-                        last={i === monthPosts.length - 1}
-                      />
+                      <PostRow key={post.id} post={post} username={profile.username} last={i === monthPosts.length - 1} />
                     ))}
                   </div>
                 </div>
@@ -165,33 +166,43 @@ export default function BlogView({ profile, posts, config = {} }: Props) {
         )}
 
         {/* ABOUT */}
-        {activeTab === 'about' && enabledSections.includes('about') && (
+        {activeTab === 'about' && (
           <div className="max-w-lg">
             {profile.avatar_url && (
-              <img
-                src={profile.avatar_url}
-                alt={profile.name}
-                className="w-20 h-20 rounded-full object-cover mb-5"
-                style={{ border: '1px solid var(--border)' }}
-              />
+              <img src={profile.avatar_url} alt={profile.name} className="w-20 h-20 rounded-full object-cover mb-5" style={{ border: '1px solid var(--border)' }} />
             )}
-            <h2 className="text-xl font-bold mb-3" style={{ color: 'var(--text)' }}>
-              {profile.name}
-            </h2>
+            <h2 className="text-xl font-bold mb-3" style={{ color: 'var(--text)' }}>{profile.name}</h2>
             {profile.bio ? (
-              <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                {profile.bio}
-              </p>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{profile.bio}</p>
             ) : (
-              <p className="text-sm italic" style={{ color: 'var(--text-tertiary)' }}>
-                Este escritor aún no ha agregado una bio.
-              </p>
+              <p className="text-sm italic" style={{ color: 'var(--text-tertiary)' }}>Este escritor aún no ha agregado una bio.</p>
             )}
             <p className="text-sm mt-5" style={{ color: 'var(--text-tertiary)' }}>
               {posts.length} {posts.length === 1 ? 'post publicado' : 'posts publicados'}
             </p>
           </div>
         )}
+
+        {/* Custom sections */}
+        {blogSections.map(section => {
+          if (activeTab !== section.id) return null
+          const sectionPosts = posts.filter(p => Array.isArray(p.post_sections) && p.post_sections.includes(section.id))
+          return (
+            <div key={section.id}>
+              {sectionPosts.length === 0 ? (
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  No hay posts en esta sección aún.
+                </p>
+              ) : (
+                <div>
+                  {sectionPosts.map((post, i) => (
+                    <PostRow key={post.id} post={post} username={profile.username} last={i === sectionPosts.length - 1} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )

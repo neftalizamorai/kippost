@@ -8,7 +8,7 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { toast } from 'sonner'
 import { useFocusMode } from '@/contexts/FocusContext'
-import PostSettingsPanel from '@/components/PostSettingsPanel'
+import PostSettingsPanel, { type BlogSection } from '@/components/PostSettingsPanel'
 import CoverImageEditor from '@/components/CoverImageEditor'
 import { type CoverOptions, coverStyle } from '@/lib/coverOptions'
 
@@ -31,7 +31,10 @@ export default function NewPostPage() {
   const [excerpt, setExcerpt] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [published, setPublished] = useState(false)
+  const [unlisted, setUnlisted] = useState(false)
   const [pinned, setPinned] = useState(false)
+  const [postSections, setPostSections] = useState<string[]>([])
+  const [blogSections, setBlogSections] = useState<BlogSection[]>([])
   const [saving, setSaving] = useState(false)
   const [initialized, setInitialized] = useState(false)
   const [initialContent, setInitialContent] = useState<string | null>(null)
@@ -67,6 +70,13 @@ export default function NewPostPage() {
     } catch {}
     setInitialized(true)
     setInitialContent(prev => prev ?? '')
+    // Load user's blog sections
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase.from('profiles').select('blog_sections').eq('id', user.id).single()
+        .then(({ data }) => { if (data?.blog_sections) setBlogSections(data.blog_sections as BlogSection[]) })
+    })
   }, [])
 
   useEffect(() => {
@@ -143,7 +153,9 @@ export default function NewPostPage() {
       excerpt: finalExcerpt,
       tags: tags.filter(Boolean),
       published,
+      unlisted,
       pinned,
+      post_sections: postSections,
       slug,
       cover_image_url: coverImageUrl || null,
       cover_image_options: coverOptions,
@@ -316,11 +328,16 @@ export default function NewPostPage() {
           excerpt={excerpt}
           tags={tags}
           published={published}
+          unlisted={unlisted}
           pinned={pinned}
+          postSections={postSections}
+          blogSections={blogSections}
           onExcerptChange={setExcerpt}
           onTagsChange={setTags}
           onPublishedChange={setPublished}
+          onUnlistedChange={setUnlisted}
           onPinnedChange={setPinned}
+          onPostSectionsChange={setPostSections}
           onClose={() => setShowSettings(false)}
         />
       )}

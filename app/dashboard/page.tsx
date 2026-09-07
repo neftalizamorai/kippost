@@ -12,7 +12,7 @@ export default async function DashboardPage() {
     supabase.from('profiles').select('username, name').eq('id', user!.id).single(),
     supabase
       .from('posts')
-      .select('id, title, excerpt, content, published, pinned, created_at, slug, tags, cover_image_url')
+      .select('id, title, excerpt, content, published, unlisted, pinned, created_at, slug, tags, cover_image_url')
       .eq('user_id', user!.id)
       .order('created_at', { ascending: false }),
   ])

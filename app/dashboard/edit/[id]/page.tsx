@@ -7,7 +7,7 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { toast } from 'sonner'
 import { useFocusMode } from '@/contexts/FocusContext'
-import PostSettingsPanel from '@/components/PostSettingsPanel'
+import PostSettingsPanel, { type BlogSection } from '@/components/PostSettingsPanel'
 import CoverImageEditor from '@/components/CoverImageEditor'
 import { type CoverOptions, coverStyle } from '@/lib/coverOptions'
 
@@ -29,7 +29,9 @@ interface Post {
   excerpt: string
   tags: string[]
   published: boolean
+  unlisted: boolean
   pinned: boolean
+  post_sections: string[]
   slug: string
   cover_image_url: string | null
 }
@@ -45,7 +47,10 @@ export default function EditPostPage() {
   const [excerpt, setExcerpt] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [published, setPublished] = useState(false)
+  const [unlisted, setUnlisted] = useState(false)
   const [pinned, setPinned] = useState(false)
+  const [postSections, setPostSections] = useState<string[]>([])
+  const [blogSections, setBlogSections] = useState<BlogSection[]>([])
   const [coverImageUrl, setCoverImageUrl] = useState('')
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -71,7 +76,9 @@ export default function EditPostPage() {
         setExcerpt(data.excerpt || '')
         setTags(data.tags ?? [])
         setPublished(data.published)
+        setUnlisted(data.unlisted ?? false)
         setPinned(data.pinned ?? false)
+        setPostSections(data.post_sections ?? [])
         setCoverImageUrl(data.cover_image_url || '')
         setCoverOptions(data.cover_image_options ?? {})
         let contentToLoad = data.content || ''
@@ -83,6 +90,12 @@ export default function EditPostPage() {
         setContent(contentToLoad)
       }
       setLoading(false)
+      // Load user's blog sections
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await supabase.from('profiles').select('blog_sections').eq('id', user.id).single()
+        if (profile?.blog_sections) setBlogSections(profile.blog_sections as BlogSection[])
+      }
     }
     load()
   }, [postId])
@@ -95,7 +108,7 @@ export default function EditPostPage() {
       const finalExcerpt = excerpt.trim() || extractFirstParagraph(content)
       await supabase.from('posts').update({
         title: title.trim(), content, excerpt: finalExcerpt,
-        tags: tags.filter(Boolean), published, pinned,
+        tags: tags.filter(Boolean), published, unlisted, pinned, post_sections: postSections,
         cover_image_url: coverImageUrl || null,
         cover_image_options: coverOptions,
         updated_at: new Date().toISOString(),
@@ -132,7 +145,9 @@ export default function EditPostPage() {
       excerpt: finalExcerpt,
       tags: tags.filter(Boolean),
       published,
+      unlisted,
       pinned,
+      post_sections: postSections,
       cover_image_url: coverImageUrl || null,
       cover_image_options: coverOptions,
       updated_at: new Date().toISOString(),
@@ -321,11 +336,16 @@ export default function EditPostPage() {
           excerpt={excerpt}
           tags={tags}
           published={published}
+          unlisted={unlisted}
           pinned={pinned}
+          postSections={postSections}
+          blogSections={blogSections}
           onExcerptChange={setExcerpt}
           onTagsChange={setTags}
           onPublishedChange={setPublished}
+          onUnlistedChange={setUnlisted}
           onPinnedChange={setPinned}
+          onPostSectionsChange={setPostSections}
           onClose={() => setShowSettings(false)}
           onDelete={handleDelete}
           deleting={deleting}
