@@ -77,8 +77,8 @@ export default function LoginPage() {
           type="button"
           onClick={handleGoogleLogin}
           disabled={googleLoading}
-          className="w-full flex items-center justify-center gap-2.5 py-2.5 text-sm font-medium rounded border hover:opacity-80 transition-opacity disabled:opacity-50 mb-5"
-          style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+          className="w-full flex items-center justify-center gap-2.5 text-sm font-medium rounded-lg border hover:opacity-80 transition-opacity disabled:opacity-50 mb-5"
+          style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)', height: '40px' }}
         >
           <GoogleIcon />
           {googleLoading ? 'Redirigiendo...' : 'Continuar con Google'}
@@ -101,8 +101,8 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
-              className="w-full px-3 py-2 text-sm rounded border outline-none transition-all focus:ring-1 focus:ring-[var(--text)]"
-              style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+              className="w-full px-4 text-sm rounded-lg outline-none transition-all focus:ring-2 focus:ring-[var(--text)]"
+              style={{ background: 'var(--bg-secondary)', border: 'none', color: 'var(--text)', height: '40px' }}
               placeholder="tu@correo.com"
             />
           </div>
@@ -117,8 +117,8 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="current-password"
-              className="w-full px-3 py-2 text-sm rounded border outline-none transition-all focus:ring-1 focus:ring-[var(--text)]"
-              style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+              className="w-full px-4 text-sm rounded-lg outline-none transition-all focus:ring-2 focus:ring-[var(--text)]"
+              style={{ background: 'var(--bg-secondary)', border: 'none', color: 'var(--text)', height: '40px' }}
               placeholder="••••••••"
             />
           </div>
@@ -130,8 +130,8 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 text-sm font-medium rounded hover:opacity-90 disabled:opacity-50"
-            style={{ background: 'var(--text)', color: 'var(--bg)' }}
+            className="w-full text-sm font-medium rounded-lg hover:opacity-90 disabled:opacity-50"
+            style={{ background: 'var(--text)', color: 'var(--bg)', height: '40px' }}
           >
             {loading ? 'Entrando...' : 'Iniciar sesión'}
           </button>

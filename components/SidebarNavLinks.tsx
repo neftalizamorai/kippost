@@ -86,7 +86,7 @@ export default function SidebarNavLinks({ username, publishedCount, draftCount, 
       <Link
         href="/dashboard/new"
         onClick={onNavigate}
-        className="flex items-center justify-center gap-2 mt-3 mb-2 px-4 py-2 rounded text-sm font-medium hover:opacity-90 transition-opacity"
+        className="flex items-center justify-center gap-2 mt-3 mb-2 px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
         style={{ background: 'var(--text)', color: 'var(--bg)' }}
       >
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

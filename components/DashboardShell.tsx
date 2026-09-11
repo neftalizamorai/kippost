@@ -32,7 +32,7 @@ function DashboardShellInner({ profile, publishedCount, draftCount, siteName, ch
   }, [isEditorPage])
 
   return (
-    <div className="min-h-screen flex" style={{ background: 'var(--bg)' }}>
+    <div className="min-h-screen flex" style={{ background: 'var(--bg-canvas)' }}>
 
       {open && (
         <div
@@ -55,7 +55,7 @@ function DashboardShellInner({ profile, publishedCount, draftCount, siteName, ch
                 sidebarCollapsed ? 'md:w-11' : 'md:w-56',
               ].join(' '),
         ].join(' ')}
-        style={{ borderRight: '1px solid var(--border)', background: 'var(--bg)' }}
+        style={{ borderRight: '1px solid var(--border)', background: 'var(--bg-surface)' }}
       >
         {/* Thin strip — only on desktop when collapsed */}
         {sidebarCollapsed && (
@@ -136,7 +136,7 @@ function DashboardShellInner({ profile, publishedCount, draftCount, siteName, ch
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header
           className={`flex items-center gap-3 px-4 md:px-6 flex-shrink-0 ${focusMode ? 'md:hidden' : ''}`}
-          style={{ borderBottom: '1px solid var(--border)', height: '44px', background: 'var(--bg)' }}
+          style={{ borderBottom: '1px solid var(--border)', height: '44px', background: 'var(--bg-surface)' }}
         >
           {/* Hamburger — mobile only */}
           <button

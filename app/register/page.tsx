@@ -129,8 +129,8 @@ export default function RegisterPage() {
           type="button"
           onClick={handleGoogleRegister}
           disabled={googleLoading}
-          className="w-full flex items-center justify-center gap-2.5 py-2.5 text-sm font-medium rounded border hover:opacity-80 transition-opacity disabled:opacity-50 mb-5"
-          style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+          className="w-full flex items-center justify-center gap-2.5 text-sm font-medium rounded-lg border hover:opacity-80 transition-opacity disabled:opacity-50 mb-5"
+          style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)', height: '40px' }}
         >
           <GoogleIcon />
           {googleLoading ? 'Redirigiendo...' : 'Continuar con Google'}
@@ -147,8 +147,8 @@ export default function RegisterPage() {
             <label className="block text-sm mb-1.5" style={{ color: 'var(--text)' }}>
               Username
             </label>
-            <div className="flex items-center rounded border overflow-hidden transition-all focus-within:ring-1 focus-within:ring-[var(--text)]" style={{ borderColor: 'var(--border)' }}>
-              <span className="px-3 py-2 text-sm border-r" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
+            <div className="flex items-center rounded-lg overflow-hidden transition-all focus-within:ring-2 focus-within:ring-[var(--text)]" style={{ background: 'var(--bg-secondary)' }}>
+              <span className="px-3 text-sm border-r" style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)', lineHeight: '40px' }}>
                 kippost.com/@
               </span>
               <input
@@ -156,8 +156,8 @@ export default function RegisterPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value.toLowerCase())}
                 required
-                className="flex-1 px-3 py-2 text-sm outline-none"
-                style={{ background: 'var(--bg)', color: 'var(--text)' }}
+                className="flex-1 px-3 text-sm outline-none"
+                style={{ background: 'transparent', color: 'var(--text)', height: '40px', border: 'none' }}
                 placeholder="tunombre"
               />
             </div>
@@ -172,8 +172,8 @@ export default function RegisterPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full px-3 py-2 text-sm rounded border outline-none transition-all focus:ring-1 focus:ring-[var(--text)]"
-              style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+              className="w-full px-4 text-sm rounded-lg outline-none transition-all focus:ring-2 focus:ring-[var(--text)]"
+              style={{ background: 'var(--bg-secondary)', border: 'none', color: 'var(--text)', height: '40px' }}
               placeholder="Tu Nombre"
             />
           </div>
@@ -188,8 +188,8 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
-              className="w-full px-3 py-2 text-sm rounded border outline-none transition-all focus:ring-1 focus:ring-[var(--text)]"
-              style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+              className="w-full px-4 text-sm rounded-lg outline-none transition-all focus:ring-2 focus:ring-[var(--text)]"
+              style={{ background: 'var(--bg-secondary)', border: 'none', color: 'var(--text)', height: '40px' }}
               placeholder="tu@correo.com"
             />
           </div>
@@ -205,8 +205,8 @@ export default function RegisterPage() {
               required
               autoComplete="new-password"
               minLength={6}
-              className="w-full px-3 py-2 text-sm rounded border outline-none transition-all focus:ring-1 focus:ring-[var(--text)]"
-              style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+              className="w-full px-4 text-sm rounded-lg outline-none transition-all focus:ring-2 focus:ring-[var(--text)]"
+              style={{ background: 'var(--bg-secondary)', border: 'none', color: 'var(--text)', height: '40px' }}
               placeholder="Mínimo 6 caracteres"
             />
           </div>
@@ -218,8 +218,8 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 text-sm font-medium rounded hover:opacity-90 disabled:opacity-50"
-            style={{ background: 'var(--text)', color: 'var(--bg)' }}
+            className="w-full text-sm font-medium rounded-lg hover:opacity-90 disabled:opacity-50"
+            style={{ background: 'var(--text)', color: 'var(--bg)', height: '40px' }}
           >
             {loading ? 'Creando cuenta...' : 'Crear cuenta'}
           </button>
