@@ -193,7 +193,7 @@ export default async function PostPage({ params }: Props) {
             </div>
 
             {/* Title */}
-            <h1 className="text-3xl font-bold leading-tight mb-4" style={{ color: 'var(--text)' }}>
+            <h1 className="font-semibold leading-tight mb-4" style={{ color: 'var(--text)', fontSize: '36px', lineHeight: '1.11', letterSpacing: '-0.025em' }}>
               {post.title}
             </h1>
 

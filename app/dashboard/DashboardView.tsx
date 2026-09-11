@@ -45,15 +45,16 @@ function extractCover(html: string): string | null {
 function StatusBadge({ published }: { published: boolean }) {
   return (
     <span
-      className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium flex-shrink-0"
+      className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"
       style={{
-        background: published ? 'rgba(52,168,83,0.10)' : 'rgba(251,188,4,0.12)',
-        color: published ? '#2d7a4f' : '#8a6500',
+        background: published ? 'var(--bg-secondary)' : 'var(--bg-secondary)',
+        color: published ? 'var(--text)' : 'var(--text-secondary)',
+        border: '1px solid var(--border)',
       }}
     >
       <span
         className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-        style={{ background: published ? '#34a853' : '#fbbc04' }}
+        style={{ background: published ? '#16a34a' : '#d97706' }}
       />
       {published ? 'Publicado' : 'Borrador'}
     </span>
@@ -63,8 +64,8 @@ function StatusBadge({ published }: { published: boolean }) {
 function PostCard({ post, username, views }: { post: Post; username: string; views?: number }) {
   return (
     <div
-      className="rounded border flex flex-col overflow-hidden transition-colors hover:bg-[var(--bg-hover)]"
-      style={{ borderColor: 'var(--border)' }}
+      className="rounded-xl flex flex-col overflow-hidden transition-colors hover:bg-[var(--bg-hover)]"
+      style={{ background: 'var(--bg)', boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)' }}
     >
       {post.cover_image_url && (
         <div className="h-32 overflow-hidden flex-shrink-0">
@@ -166,12 +167,12 @@ function PostRow({ post, username, last, views }: { post: Post; username: string
             {post.title}
           </Link>
           {!post.published && (
-            <span className="inline-flex items-center text-xs px-1.5 py-0.5 rounded font-medium flex-shrink-0" style={{ background: 'rgba(251,188,4,0.12)', color: '#8a6500' }}>
+            <span className="inline-flex items-center text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0" style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}>
               borrador
             </span>
           )}
           {post.published && post.unlisted && (
-            <span className="inline-flex items-center text-xs px-1.5 py-0.5 rounded font-medium flex-shrink-0" style={{ background: 'rgba(100,100,100,0.1)', color: 'var(--text-tertiary)' }}>
+            <span className="inline-flex items-center text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0" style={{ background: 'var(--bg-secondary)', color: 'var(--text-tertiary)', border: '1px solid var(--border)' }}>
               no listado
             </span>
           )}
@@ -270,7 +271,7 @@ export default function DashboardView({ posts, username, name, viewMap }: Omit<P
     <button
       key={t}
       onClick={() => setTab(t)}
-      className="px-3 py-1.5 rounded text-sm transition-colors"
+      className="px-3 py-1.5 rounded-md text-sm transition-colors"
       style={{
         background: tab === t ? 'var(--bg)' : 'transparent',
         color: tab === t ? 'var(--text)' : 'var(--text-secondary)',
@@ -308,8 +309,8 @@ export default function DashboardView({ posts, username, name, viewMap }: Omit<P
         {/* Crear button — top right on mobile */}
         <Link
           href="/dashboard/new"
-          className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded hover:opacity-90 transition-opacity flex-shrink-0"
-          style={{ background: 'var(--text)', color: 'var(--bg)' }}
+          className="flex items-center gap-1.5 text-sm font-medium px-4 rounded-lg hover:opacity-90 transition-opacity flex-shrink-0"
+          style={{ background: 'var(--text)', color: 'var(--bg)', height: '36px' }}
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -322,7 +323,7 @@ export default function DashboardView({ posts, username, name, viewMap }: Omit<P
       <div className="flex items-center justify-between gap-2 mb-4">
         {/* Tabs — scrollable on mobile */}
         <div className="overflow-x-auto flex-1 min-w-0 -mx-1 px-1" style={{ scrollbarWidth: 'none' }}>
-          <div className="flex items-center gap-0.5 p-1 rounded w-fit" style={{ background: 'var(--bg-secondary)' }}>
+          <div className="flex items-center gap-0.5 p-1 rounded-lg w-fit" style={{ background: 'var(--bg-secondary)' }}>
             {tabBtn('all', 'Todos', posts.length)}
             {tabBtn('published', 'Publicado', published.length)}
             {tabBtn('draft', 'Borradores', drafts.length)}
@@ -330,7 +331,7 @@ export default function DashboardView({ posts, username, name, viewMap }: Omit<P
         </div>
 
         {/* View toggle */}
-        <div className="flex rounded border overflow-hidden flex-shrink-0" style={{ borderColor: 'var(--border)' }}>
+        <div className="flex rounded-lg overflow-hidden flex-shrink-0" style={{ background: 'var(--bg-secondary)' }}>
           {viewBtn('list',
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
@@ -351,8 +352,8 @@ export default function DashboardView({ posts, username, name, viewMap }: Omit<P
       {/* Search + Sort */}
       <div className="flex items-center gap-2 mb-4">
         <div
-          className="flex-1 flex items-center gap-2 px-3 py-2 rounded border"
-          style={{ borderColor: 'var(--border)', background: 'var(--bg)' }}
+          className="flex-1 flex items-center gap-2 px-3 rounded-lg"
+          style={{ background: 'var(--bg-secondary)', height: '36px' }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}>
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -377,8 +378,8 @@ export default function DashboardView({ posts, username, name, viewMap }: Omit<P
         <select
           value={sort}
           onChange={e => setSort(e.target.value as 'newest' | 'oldest')}
-          className="text-sm px-2 py-2 rounded border outline-none cursor-pointer flex-shrink-0"
-          style={{ borderColor: 'var(--border)', color: 'var(--text)', background: 'var(--bg)' }}
+          className="text-sm px-3 rounded-lg outline-none cursor-pointer flex-shrink-0"
+          style={{ color: 'var(--text)', background: 'var(--bg-secondary)', height: '36px', border: 'none' }}
         >
           <option value="newest">Recientes</option>
           <option value="oldest">Antiguos</option>
@@ -407,7 +408,7 @@ export default function DashboardView({ posts, username, name, viewMap }: Omit<P
 
       {/* Content */}
       {filtered.length === 0 ? (
-        <div className="text-center py-16 rounded border" style={{ borderColor: 'var(--border)', borderStyle: 'dashed' }}>
+        <div className="text-center py-16 rounded-xl" style={{ border: '1.5px dashed var(--border)' }}>
           <p className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
             {search || tagFilter
               ? 'No se encontraron posts.'
@@ -438,7 +439,7 @@ export default function DashboardView({ posts, username, name, viewMap }: Omit<P
             >
               {month}
             </p>
-            <div className="rounded border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
+            <div className="rounded-xl overflow-hidden" style={{ background: 'var(--bg)', boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)' }}>
               {monthPosts.map((post, i) => (
                 <PostRow
                   key={post.id}

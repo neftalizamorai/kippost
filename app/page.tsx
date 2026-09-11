@@ -25,14 +25,14 @@ export default async function HomePage() {
           <Link
             href="/login"
             className="hover:bg-[var(--bg-hover)] transition-colors"
-            style={{ fontSize: '14px', color: 'var(--text-secondary)', padding: '5px 10px', borderRadius: '4px' }}
+            style={{ fontSize: '14px', color: 'var(--text-secondary)', padding: '5px 10px', borderRadius: '18px' }}
           >
             Entrar
           </Link>
           <Link
             href="/register"
             className="hover:opacity-90 transition-opacity"
-            style={{ fontSize: '14px', fontWeight: 500, color: 'var(--bg)', background: 'var(--text)', padding: '6px 12px', borderRadius: '4px' }}
+            style={{ fontSize: '14px', fontWeight: 500, color: 'var(--bg)', background: 'var(--text)', padding: '6px 16px', borderRadius: '18px' }}
           >
             Crear mi blog
           </Link>
@@ -76,7 +76,7 @@ export default async function HomePage() {
           <Link
             href="/register"
             className="hover:opacity-90 transition-opacity"
-            style={{ display: 'inline-block', fontSize: '14px', fontWeight: 500, color: 'var(--bg)', background: 'var(--text)', padding: '11px 22px', borderRadius: '4px' }}
+            style={{ display: 'inline-block', fontSize: '14px', fontWeight: 500, color: 'var(--bg)', background: 'var(--text)', padding: '11px 24px', borderRadius: '18px' }}
           >
             Crear mi blog
           </Link>

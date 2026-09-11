@@ -253,8 +253,8 @@ export default function NewPostPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={toggleFocusMode}
-              className="text-sm px-2.5 py-1.5 rounded border transition-colors hover:bg-[var(--bg-hover)]"
-              style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+              className="text-sm px-2.5 py-1.5 rounded-lg transition-colors hover:bg-[var(--bg-hover)]"
+              style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
               title={focusMode ? 'Salir del modo enfoque' : 'Modo enfoque'}
             >
               {focusMode ? (
@@ -270,8 +270,8 @@ export default function NewPostPage() {
             </button>
             <button
               onClick={() => setShowSettings(true)}
-              className="text-sm px-2.5 py-1.5 rounded border transition-colors hover:bg-[var(--bg-hover)] relative"
-              style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+              className="text-sm px-2.5 py-1.5 rounded-lg transition-colors hover:bg-[var(--bg-hover)] relative"
+              style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
               title="Ajustes del post"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -284,7 +284,7 @@ export default function NewPostPage() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="text-sm font-medium px-4 py-1.5 rounded hover:opacity-90 disabled:opacity-50"
+              className="text-sm font-medium px-4 py-1.5 rounded-lg hover:opacity-90 disabled:opacity-50"
               style={{ background: 'var(--text)', color: 'var(--bg)' }}
             >
               {saving ? 'Guardando…' : 'Guardar'}

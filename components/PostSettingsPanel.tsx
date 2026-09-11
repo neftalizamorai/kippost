@@ -76,7 +76,7 @@ export default function PostSettingsPanel({
       <div
         className="relative w-full max-w-xs h-full flex flex-col transition-transform duration-200 overflow-y-auto"
         style={{
-          background: 'var(--bg)',
+          background: 'var(--bg-surface)',
           borderLeft: '1px solid var(--border)',
           boxShadow: '-4px 0 24px rgba(0,0,0,0.08)',
           transform: visible ? 'translateX(0)' : 'translateX(100%)',
@@ -167,9 +167,9 @@ export default function PostSettingsPanel({
               onChange={e => onExcerptChange(e.target.value)}
               rows={3}
               placeholder="Descripción breve del post…"
-              className="w-full text-sm rounded border px-3 py-2 outline-none resize-none leading-relaxed"
+              className="w-full text-sm rounded-lg px-3 py-2 outline-none resize-none leading-relaxed focus:ring-2 focus:ring-[var(--text)]"
               style={{
-                borderColor: 'var(--border)',
+                border: '1px solid var(--border)',
                 background: 'var(--bg-secondary)',
                 color: 'var(--text)',
               }}

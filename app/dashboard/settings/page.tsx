@@ -407,8 +407,8 @@ export default function SettingsPage() {
             type="text"
             value={username}
             disabled
-            className="w-full px-3 py-2 text-sm rounded border cursor-not-allowed opacity-60"
-            style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text)' }}
+            className="w-full px-3 py-2 text-sm rounded-lg cursor-not-allowed opacity-60"
+            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', color: 'var(--text)' }}
           />
           <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>El username no se puede cambiar.</p>
         </div>
@@ -419,8 +419,8 @@ export default function SettingsPage() {
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
-            className="w-full px-3 py-2 text-sm rounded border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
-            style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+            className="w-full px-3 py-2 text-sm rounded-lg outline-none focus:ring-2 focus:ring-[var(--text)] transition-all"
+            style={{ background: 'var(--bg-secondary)', border: 'none', color: 'var(--text)', height: '38px' }}
             placeholder="Tu nombre"
           />
         </div>
@@ -433,8 +433,8 @@ export default function SettingsPage() {
             rows={3}
             maxLength={200}
             placeholder="Cuéntale a tus lectores quién eres..."
-            className="w-full px-3 py-2 text-sm rounded border outline-none resize-none focus:ring-1 focus:ring-[var(--text)] transition-all leading-relaxed"
-            style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+            className="w-full px-3 py-2 text-sm rounded-lg outline-none resize-none focus:ring-2 focus:ring-[var(--text)] transition-all leading-relaxed"
+            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', color: 'var(--text)' }}
           />
           <p className="text-xs mt-1 text-right" style={{ color: 'var(--text-tertiary)' }}>{bio.length}/200</p>
         </div>
@@ -454,7 +454,7 @@ export default function SettingsPage() {
                 >
                   {icon}
                 </div>
-                <div className="flex-1 flex items-center rounded border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
+                <div className="flex-1 flex items-center rounded-lg overflow-hidden" style={{ background: 'var(--bg-secondary)' }}>
                   {prefix && (
                     <span
                       className="px-2 py-2 text-xs border-r flex-shrink-0 select-none"
@@ -567,8 +567,8 @@ export default function SettingsPage() {
                       hero: { ...prev.hero, [field.key]: e.target.value },
                     }))}
                     placeholder={field.placeholder}
-                    className="w-full px-3 py-2 text-sm rounded border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
-                    style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                    className="w-full px-3 py-2 text-sm rounded-lg outline-none focus:ring-2 focus:ring-[var(--text)] transition-all"
+                    style={{ background: 'var(--bg-secondary)', border: 'none', color: 'var(--text)' }}
                   />
                 </div>
               ))}
@@ -699,7 +699,7 @@ export default function SettingsPage() {
                     setBlogSections(prev => [...prev, { id: Math.random().toString(36).slice(2, 9), name: newSectionName.trim() }])
                     setNewSectionName('')
                   }}
-                  className="px-3 py-2 text-sm rounded border transition-colors hover:bg-[var(--bg-hover)]"
+                  className="px-3 py-2 text-sm rounded-lg transition-colors hover:bg-[var(--bg-hover)]"
                   style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
                 >
                   Añadir
@@ -712,8 +712,8 @@ export default function SettingsPage() {
         <button
           type="submit"
           disabled={saving}
-          className="text-sm font-medium px-5 py-2 rounded hover:opacity-90 disabled:opacity-50 transition-opacity"
-          style={{ background: 'var(--text)', color: 'var(--bg)' }}
+          className="text-sm font-medium px-5 rounded-lg hover:opacity-90 disabled:opacity-50 transition-opacity"
+          style={{ background: 'var(--text)', color: 'var(--bg)', height: '36px' }}
         >
           {saving ? 'Guardando...' : 'Guardar cambios'}
         </button>
@@ -783,15 +783,15 @@ export default function SettingsPage() {
                 autoComplete="off"
                 autoCorrect="off"
                 spellCheck={false}
-                className="flex-1 px-3 py-2 text-sm rounded border outline-none focus:ring-1 focus:ring-[var(--text)] transition-all"
-                style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                className="flex-1 px-3 py-2 text-sm rounded-lg outline-none focus:ring-2 focus:ring-[var(--text)] transition-all"
+                style={{ background: 'var(--bg-secondary)', border: 'none', color: 'var(--text)' }}
               />
               <button
                 type="button"
                 onClick={handleDomainConnect}
                 disabled={domainConnecting || !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(sanitizeDomain(customDomain))}
-                className="text-sm px-4 py-2 rounded font-medium hover:opacity-90 disabled:opacity-40 transition-opacity"
-                style={{ background: 'var(--text)', color: 'var(--bg)' }}
+                className="text-sm px-4 rounded-lg font-medium hover:opacity-90 disabled:opacity-40 transition-opacity"
+                style={{ background: 'var(--text)', color: 'var(--bg)', height: '36px' }}
               >
                 {domainConnecting ? 'Conectando...' : 'Conectar'}
               </button>
