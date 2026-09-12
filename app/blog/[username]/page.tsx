@@ -25,6 +25,8 @@ function socialUrl(key: string, value: string): string {
     // Only allow http/https — block javascript:, data:, etc.
     return value
   }
+  // Website field: auto-prepend https:// when the user omitted the protocol
+  if (key === 'website') return `https://${value}`
   const prefix = SOCIAL_PREFIXES[key]
   // Unknown keys with no prefix and no full URL are unsafe to render as hrefs
   if (!prefix) return ''
