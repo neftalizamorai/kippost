@@ -143,7 +143,7 @@ export default async function BlogPage({ params }: Props) {
   const [{ data: posts }, { data: pinnedPosts }] = await Promise.all([
     supabase
       .from('posts')
-      .select('id, title, excerpt, content, tags, created_at, slug, cover_image_url, pinned')
+      .select('id, title, excerpt, content, tags, created_at, slug, cover_image_url, pinned, hide_date, post_sections, pinned_sections')
       .eq('user_id', profile.id)
       .eq('published', true)
       .order('created_at', { ascending: false }),

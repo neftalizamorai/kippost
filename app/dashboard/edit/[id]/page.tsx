@@ -49,7 +49,9 @@ export default function EditPostPage() {
   const [published, setPublished] = useState(false)
   const [unlisted, setUnlisted] = useState(false)
   const [pinned, setPinned] = useState(false)
+  const [hideDate, setHideDate] = useState(false)
   const [postSections, setPostSections] = useState<string[]>([])
+  const [pinnedSections, setPinnedSections] = useState<string[]>([])
   const [blogSections, setBlogSections] = useState<BlogSection[]>([])
   const [coverImageUrl, setCoverImageUrl] = useState('')
   const [uploading, setUploading] = useState(false)
@@ -87,7 +89,9 @@ export default function EditPostPage() {
         setPublished(data.published)
         setUnlisted(data.unlisted ?? false)
         setPinned(data.pinned ?? false)
+        setHideDate(data.hide_date ?? false)
         setPostSections(data.post_sections ?? [])
+        setPinnedSections(data.pinned_sections ?? [])
         setCoverImageUrl(data.cover_image_url || '')
         setCoverOptions(data.cover_image_options ?? {})
         let contentToLoad = data.content || ''
@@ -114,7 +118,8 @@ export default function EditPostPage() {
       const finalExcerpt = excerpt.trim() || extractFirstParagraph(content)
       await supabase.from('posts').update({
         title: title.trim(), content, excerpt: finalExcerpt,
-        tags: tags.filter(Boolean), published, unlisted, pinned, post_sections: postSections,
+        tags: tags.filter(Boolean), published, unlisted, pinned, hide_date: hideDate,
+        post_sections: postSections, pinned_sections: pinnedSections,
         cover_image_url: coverImageUrl || null,
         cover_image_options: coverOptions,
         updated_at: new Date().toISOString(),
@@ -153,7 +158,9 @@ export default function EditPostPage() {
       published,
       unlisted,
       pinned,
+      hide_date: hideDate,
       post_sections: postSections,
+      pinned_sections: pinnedSections,
       cover_image_url: coverImageUrl || null,
       cover_image_options: coverOptions,
       updated_at: new Date().toISOString(),
@@ -344,14 +351,18 @@ export default function EditPostPage() {
           published={published}
           unlisted={unlisted}
           pinned={pinned}
+          hideDate={hideDate}
           postSections={postSections}
+          pinnedSections={pinnedSections}
           blogSections={blogSections}
           onExcerptChange={setExcerpt}
           onTagsChange={setTags}
           onPublishedChange={setPublished}
           onUnlistedChange={setUnlisted}
           onPinnedChange={setPinned}
+          onHideDateChange={setHideDate}
           onPostSectionsChange={setPostSections}
+          onPinnedSectionsChange={setPinnedSections}
           onClose={() => setShowSettings(false)}
           onDelete={handleDelete}
           deleting={deleting}

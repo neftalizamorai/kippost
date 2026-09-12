@@ -33,7 +33,9 @@ export default function NewPostPage() {
   const [published, setPublished] = useState(false)
   const [unlisted, setUnlisted] = useState(false)
   const [pinned, setPinned] = useState(false)
+  const [hideDate, setHideDate] = useState(false)
   const [postSections, setPostSections] = useState<string[]>([])
+  const [pinnedSections, setPinnedSections] = useState<string[]>([])
   const [blogSections, setBlogSections] = useState<BlogSection[]>([])
   const [saving, setSaving] = useState(false)
   const [initialized, setInitialized] = useState(false)
@@ -64,6 +66,7 @@ export default function NewPostPage() {
           setExcerpt(draft.excerpt || '')
           setTags(draft.tags || [])
           setPinned(draft.pinned || false)
+          setHideDate(draft.hideDate || false)
           setCoverImageUrl(draft.coverImageUrl || '')
           setCoverOptions(draft.coverOptions || {})
         }
@@ -93,11 +96,11 @@ export default function NewPostPage() {
     clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
       try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, content, excerpt, tags, pinned, coverImageUrl, coverOptions }))
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, content, excerpt, tags, pinned, hideDate, coverImageUrl, coverOptions }))
       } catch {}
     }, 2000)
     return () => clearTimeout(saveTimerRef.current)
-  }, [title, content, excerpt, tags, pinned, coverImageUrl, coverOptions, initialized])
+  }, [title, content, excerpt, tags, pinned, hideDate, coverImageUrl, coverOptions, initialized])
 
   useEffect(() => {
     autoSaveRef.current = setInterval(async () => {
@@ -158,7 +161,9 @@ export default function NewPostPage() {
       published,
       unlisted,
       pinned,
+      hide_date: hideDate,
       post_sections: postSections,
+      pinned_sections: pinnedSections,
       slug,
       cover_image_url: coverImageUrl || null,
       cover_image_options: coverOptions,
@@ -333,14 +338,18 @@ export default function NewPostPage() {
           published={published}
           unlisted={unlisted}
           pinned={pinned}
+          hideDate={hideDate}
           postSections={postSections}
+          pinnedSections={pinnedSections}
           blogSections={blogSections}
           onExcerptChange={setExcerpt}
           onTagsChange={setTags}
           onPublishedChange={setPublished}
           onUnlistedChange={setUnlisted}
           onPinnedChange={setPinned}
+          onHideDateChange={setHideDate}
           onPostSectionsChange={setPostSections}
+          onPinnedSectionsChange={setPinnedSections}
           onClose={() => setShowSettings(false)}
         />
       )}
