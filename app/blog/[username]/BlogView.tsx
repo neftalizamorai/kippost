@@ -14,7 +14,9 @@ interface Post {
   slug: string
   cover_image_url: string | null
   pinned: boolean
+  hide_date?: boolean
   post_sections?: string[]
+  pinned_sections?: string[]
 }
 
 interface Profile {
@@ -186,7 +188,11 @@ export default function BlogView({ profile, posts, config = {}, blogSections = [
         {/* Custom sections */}
         {blogSections.map(section => {
           if (activeTab !== section.id) return null
-          const sectionPosts = posts.filter(p => Array.isArray(p.post_sections) && p.post_sections.includes(section.id))
+          const all = posts.filter(p => Array.isArray(p.post_sections) && p.post_sections.includes(section.id))
+          // Pinned-in-section posts first, rest in chronological order
+          const pinned = all.filter(p => Array.isArray(p.pinned_sections) && p.pinned_sections.includes(section.id))
+          const rest = all.filter(p => !Array.isArray(p.pinned_sections) || !p.pinned_sections.includes(section.id))
+          const sectionPosts = [...pinned, ...rest]
           return (
             <div key={section.id}>
               {sectionPosts.length === 0 ? (
@@ -196,7 +202,14 @@ export default function BlogView({ profile, posts, config = {}, blogSections = [
               ) : (
                 <div>
                   {sectionPosts.map((post, i) => (
-                    <PostRow key={post.id} post={post} username={profile.username} last={i === sectionPosts.length - 1} blogSections={blogSections} />
+                    <PostRow
+                      key={post.id}
+                      post={post}
+                      username={profile.username}
+                      last={i === sectionPosts.length - 1}
+                      blogSections={blogSections}
+                      pinnedInSection={Array.isArray(post.pinned_sections) && post.pinned_sections.includes(section.id)}
+                    />
                   ))}
                 </div>
               )}
@@ -232,16 +245,18 @@ function FeaturedCard({ post, username }: { post: Post; username: string }) {
               {excerpt}
             </p>
           )}
-          <p className="mt-1.5 text-xs" style={{ color: 'var(--text-tertiary)' }}>
-            {formatDate(post.created_at)}
-          </p>
+          {!post.hide_date && (
+            <p className="mt-1.5 text-xs" style={{ color: 'var(--text-tertiary)' }}>
+              {formatDate(post.created_at)}
+            </p>
+          )}
         </div>
       </div>
     </Link>
   )
 }
 
-function PostRow({ post, username, last, blogSections = [] }: { post: Post; username: string; last: boolean; blogSections?: BlogSectionDef[] }) {
+function PostRow({ post, username, last, blogSections = [], pinnedInSection = false }: { post: Post; username: string; last: boolean; blogSections?: BlogSectionDef[]; pinnedInSection?: boolean }) {
   const excerpt = safeExcerpt(post.excerpt)
   const postSectionNames = Array.isArray(post.post_sections)
     ? blogSections.filter(s => post.post_sections!.includes(s.id)).map(s => s.name)
@@ -256,10 +271,20 @@ function PostRow({ post, username, last, blogSections = [] }: { post: Post; user
         <div className="flex items-start gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                {formatDate(post.created_at)}
-              </span>
-              <span style={{ color: 'var(--border)' }}>·</span>
+              {pinnedInSection && (
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}>
+                  <line x1="12" y1="17" x2="12" y2="22"/>
+                  <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/>
+                </svg>
+              )}
+              {!post.hide_date && (
+                <>
+                  <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                    {formatDate(post.created_at)}
+                  </span>
+                  <span style={{ color: 'var(--border)' }}>·</span>
+                </>
+              )}
               <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                 {readingTime(post.content)} min de lectura
               </span>

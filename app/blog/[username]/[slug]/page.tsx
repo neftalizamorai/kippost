@@ -187,8 +187,12 @@ export default async function PostPage({ params }: Props) {
           {/* Article */}
           <article className="flex-1 min-w-0 max-w-2xl">
             <div className="flex items-center gap-2 mb-5 text-xs" style={{ color: 'var(--text-tertiary)' }}>
-              <time>{formatDate(post.created_at)}</time>
-              <span>·</span>
+              {!post.hide_date && (
+                <>
+                  <time>{formatDate(post.created_at)}</time>
+                  <span>·</span>
+                </>
+              )}
               <span>{mins} min de lectura</span>
             </div>
 

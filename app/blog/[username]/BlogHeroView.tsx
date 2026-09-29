@@ -9,6 +9,7 @@ interface Post {
   tags: string[]
   created_at: string
   slug: string
+  hide_date?: boolean
 }
 
 interface Profile {
@@ -94,10 +95,14 @@ export default function BlogHeroView({ profile, posts, config = {} }: Props) {
                 style={{ borderBottom: i === posts.length - 1 ? 'none' : '1px solid var(--border)' }}
               >
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                    {formatDate(post.created_at)}
-                  </span>
-                  <span style={{ color: 'var(--border)' }}>·</span>
+                  {!post.hide_date && (
+                    <>
+                      <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                        {formatDate(post.created_at)}
+                      </span>
+                      <span style={{ color: 'var(--border)' }}>·</span>
+                    </>
+                  )}
                   <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                     {readingTime(post.content)} min
                   </span>
