@@ -5,6 +5,7 @@ import { useCreateBlockNote } from '@blocknote/react'
 import { BlockNoteView } from '@blocknote/mantine'
 import '@blocknote/core/style.css'
 import '@blocknote/mantine/style.css'
+import { createClient } from '@/lib/supabase/client'
 
 interface Props {
   initialContent: string | null
@@ -25,7 +26,20 @@ type HeadingLevel = 1 | 2 | 3
 
 export default function BlockNoteEditor({ initialContent, onChange }: Props) {
   const initialBlocks = useMemo(() => parseInitialBlocks(initialContent), [initialContent])
-  const editor = useCreateBlockNote({ initialContent: initialBlocks })
+
+  const uploadFile = useCallback(async (file: File): Promise<string> => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('No autenticado')
+    const ext = file.name.split('.').pop() ?? 'jpg'
+    const filePath = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+    const { error } = await supabase.storage.from('covers').upload(filePath, file, { upsert: true })
+    if (error) throw error
+    const { data: { publicUrl } } = supabase.storage.from('covers').getPublicUrl(filePath)
+    return publicUrl
+  }, [])
+
+  const editor = useCreateBlockNote({ initialContent: initialBlocks, uploadFile })
   const [focused, setFocused] = useState(false)
   const [activeStyles, setActiveStyles] = useState<Record<string, boolean>>({})
   const [currentBlockType, setCurrentBlockType] = useState<string>('paragraph')
