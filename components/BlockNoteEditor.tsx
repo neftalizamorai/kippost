@@ -6,6 +6,7 @@ import { BlockNoteView } from '@blocknote/mantine'
 import '@blocknote/core/style.css'
 import '@blocknote/mantine/style.css'
 import { createClient } from '@/lib/supabase/client'
+import { useTheme } from 'next-themes'
 
 interface Props {
   initialContent: string | null
@@ -26,6 +27,7 @@ type HeadingLevel = 1 | 2 | 3
 
 export default function BlockNoteEditor({ initialContent, onChange }: Props) {
   const initialBlocks = useMemo(() => parseInitialBlocks(initialContent), [initialContent])
+  const { resolvedTheme } = useTheme()
 
   const uploadFile = useCallback(async (file: File): Promise<string> => {
     const supabase = createClient()
@@ -120,7 +122,7 @@ export default function BlockNoteEditor({ initialContent, onChange }: Props) {
     <div>
       <BlockNoteView
         editor={editor}
-        theme="light"
+        theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
         onChange={() => onChange(JSON.stringify(editor.document))}
         onSelectionChange={syncState}
         onFocus={() => setFocused(true)}
