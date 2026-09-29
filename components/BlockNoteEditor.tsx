@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useEffect, useState, useCallback } from 'react'
+import { useMemo, useEffect, useState, useCallback, useRef } from 'react'
 import { useCreateBlockNote } from '@blocknote/react'
 import { BlockNoteView } from '@blocknote/mantine'
 import '@blocknote/core/style.css'
@@ -43,6 +43,8 @@ export default function BlockNoteEditor({ initialContent, onChange }: Props) {
 
   const editor = useCreateBlockNote({ initialContent: initialBlocks, uploadFile })
   const [focused, setFocused] = useState(false)
+  const [activeImageId, setActiveImageId] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [activeStyles, setActiveStyles] = useState<Record<string, boolean>>({})
   const [currentBlockType, setCurrentBlockType] = useState<string>('paragraph')
   const [currentHeadingLevel, setCurrentHeadingLevel] = useState<number>(1)
@@ -65,6 +67,27 @@ export default function BlockNoteEditor({ initialContent, onChange }: Props) {
       setCurrentHeadingLevel((pos.block.props as { level?: number })?.level ?? 1)
     } catch {}
   }, [editor])
+
+  const handleEditorClick = useCallback((e: React.MouseEvent) => {
+    const target = e.target as HTMLElement
+    if (target.tagName === 'IMG') {
+      const blockEl = target.closest('[data-id]')
+      const id = blockEl?.getAttribute('data-id') ?? null
+      setActiveImageId(id)
+    } else if (!target.closest('[data-image-toolbar]')) {
+      setActiveImageId(null)
+    }
+  }, [])
+
+  const replaceImage = useCallback(async (file: File) => {
+    if (!activeImageId) return
+    try {
+      const url = await uploadFile(file)
+      editor.updateBlock(activeImageId, { type: 'image', props: { url } } as Parameters<typeof editor.updateBlock>[1])
+      onChange(JSON.stringify(editor.document))
+    } catch {}
+    setActiveImageId(null)
+  }, [activeImageId, uploadFile, editor, onChange])
 
   // Toggle bold/italic/etc — onPointerDown + preventDefault keeps editor focused on mobile
   const toggleStyle = (style: string) => {
@@ -119,7 +142,7 @@ export default function BlockNoteEditor({ initialContent, onChange }: Props) {
   }
 
   return (
-    <div>
+    <div onClick={handleEditorClick}>
       <BlockNoteView
         editor={editor}
         theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
@@ -129,6 +152,53 @@ export default function BlockNoteEditor({ initialContent, onChange }: Props) {
         onBlur={() => setFocused(false)}
         style={{ minHeight: '50vh' }}
       />
+
+      {/* Hidden file input for replacing images */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={async e => {
+          const file = e.target.files?.[0]
+          if (file) await replaceImage(file)
+          e.target.value = ''
+        }}
+      />
+
+      {/* Persistent image toolbar — visible whenever an image block is selected */}
+      {activeImageId && (
+        <div
+          data-image-toolbar="true"
+          className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2 rounded-full shadow-lg"
+          style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+        >
+          <button
+            onPointerDown={e => { e.preventDefault(); fileInputRef.current?.click() }}
+            className="flex items-center gap-1.5 text-sm font-medium"
+            style={{ color: 'var(--text)' }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+            Cambiar
+          </button>
+          <span style={{ color: 'var(--border)' }}>·</span>
+          <button
+            onPointerDown={e => {
+              e.preventDefault()
+              editor.removeBlocks([activeImageId])
+              setActiveImageId(null)
+              onChange(JSON.stringify(editor.document))
+            }}
+            className="text-sm font-medium"
+            style={{ color: '#e03e3e' }}
+          >
+            Eliminar
+          </button>
+        </div>
+      )}
 
       {/* Mobile-only custom toolbar — fixed above virtual keyboard */}
       {focused && (
